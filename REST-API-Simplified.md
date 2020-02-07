@@ -6,10 +6,47 @@
 
 **NOTE: DOCUMENT IS AUTOMATICALLY GENERATED**
 
-*Do not update this document directly*
+*Do not update this document directly.*  Instead, update `simple_rest_api.py` and run it as a python3 script.
 
-Instead, update `simple_rest_api.py` and run as it a python3 script.
-
+---
+## Executive Summary
+- This API is a replacement for the `/redfish/v1` API implemented by Stingray.
+- All URIs defined below will be relative to a versioned root path that is yet to be determined but should be something like `/rapi/v2`.
+- Initial versions will (obviously) contain a subset of the API as development proceeds.  The **Released In** tag should be populated with a version number as each URI is implemented.
+- Implementation priority...
+    - [/time](#uri---time)
+        - Get/Set system time
+        - Allows for testing API infrastructure basic operation
+    - [/task](#uri---task)
+        - Async task management
+        - Needed to support long-running requests
+        - Prerequisite for software update and container deployment
+    - [/sys](#uri---sys)
+        - Top-level system details
+        - Reboot
+        - Although reboot will not be a necessity for software update, it seems to be an easy thing to implement
+    - [/sw](#uri---sw)
+        - Software component version information
+        - Root filesystem update
+    - [/cntr](#uri---cntr)
+        - Container management subsystem
+        - Will be the most complicated, but the most useful
+    - [/diag](#uri---diaglog)
+        - Diagnostics (especially logging)
+        - Until this subsystem is working we will just use `ssh`
+    - [/net](#uri---net)
+        - Network service configuration
+    - [/eth](#uri---eth)
+        - Ethernet interface configuration
+        - This will probably be the most troublesome since errors will cause network connectivity to be lost
+    - [/user/admin](#uri---usersuser_idcmdset)
+        - Change the admin user password
+        - Not needed for machine-to-machine communication, more internal from the web service
+    - [/sec/cert](#uri---seccert)
+        - Security certificate management
+        - Should handle TLS certificates and machine-to-machine (JWT) certificates
+        - Save this for last since it might be complex
+    
 ---
 ## API Basics
 - Loosely modeled after the [Geist API](http://releases.geist.local/documentation/api/latest/geist_api_public.html)
@@ -17,7 +54,7 @@ Instead, update `simple_rest_api.py` and run as it a python3 script.
     - We may eventually translate a GET request into an implied body with nothing but: `"cmd" : "get"`.
     - POST input body
         - `cmd`  : Command verb (`get`, `set`, `add`, `delete`, `control`, ...) interpreted by the URI target
-        - `opt`  : Optional global options for the command
+        - `opt`  : Global options for the command (not required)
             - `dbg`  : Debug log level
             - `dev`  : Dev mode token
             - `test` : Test mode token
@@ -29,12 +66,12 @@ Instead, update `simple_rest_api.py` and run as it a python3 script.
             - `log`  : Optional log URL containing command log output
         - `data` : Optional data specific to the URI target, command verb, and status.
 - Output file streams
-    - API requests that generate a file stream or static reference will return a relative URL that can
-      be used on a subsequent GET
-    - A GET on a file stream will return the headers and body associated
-      with that file stream (e.g. like a normal static link)
-    - File streams may be transient/temporary and purged at any time based on
-      garbage collection parameters (and may not survive a reboot)
+    - API requests that generate a file stream or static reference will return a relative URL that can be used on a subsequent GET
+    - A GET on a file stream will return the headers and body associated with that file stream (e.g. like a normal static link)
+    - File streams may be transient/temporary and purged at any time based on garbage collection parameters (and may not survive a reboot)
+
+---
+## Security
 - Authentication/Authorization
     - Username/Password : Using HTTP Basic authentication
     - Session : Using a 'session' cookie
@@ -62,43 +99,43 @@ Instead, update `simple_rest_api.py` and run as it a python3 script.
 ---
 ## Actions
 
-| **-**                | **add**     | **control** | **delete**  | **get**     | **set**     |
-|----------------------|-------------|-------------|-------------|-------------|-------------|
-| **cntr**             |             |             | [\|X\|](#uri---cntrcmddelete) | [\|X\|](#uri---cntr) |             |
-| **cntr.image**       | [\|X\|](#uri---cntrimagecmdadd) |             | [\|X\|](#uri---cntrimagecmddelete) | [\|X\|](#uri---cntrimage) |             |
-| **cntr.image.id**    |             |             | [\|X\|](#uri---cntrimageimage\_idcmddelete) | [\|X\|](#uri---cntrimageimage\_id) |             |
-| **cntr.service**     | [\|X\|](#uri---cntrservicecmdadd) |             | [\|X\|](#uri---cntrservicecmddelete) | [\|X\|](#uri---cntrservice) |             |
-| **cntr.service.id**  |             | [\|X\|](#uri---cntrserviceservice\_idcmdcontrol) | [\|X\|](#uri---cntrserviceservice\_idcmddelete) | [\|X\|](#uri---cntrserviceservice\_id) |             |
-| **diag.log**         |             |             | [\|X\|](#uri---diaglogcmddelete) | [\|X\|](#uri---diaglog) |             |
-| **diag.log.id**      |             |             | [\|X\|](#uri---diagloglog\_idcmddelete) | [\|X\|](#uri---diagloglog\_id) |             |
-| **diag.net.id**      |             | [\|X\|](#uri---diagnetcmdcontrol) |             |             |             |
-| **diag.power**       |             |             |             | [\|X\|](#uri---diagpower) |             |
-| **diag.resource**    |             |             |             | [\|X\|](#uri---diagresource) |             |
-| **diag.resource.id** |             |             |             | [\|X\|](#uri---diagresourceresource\_id) |             |
-| **-**                | **add**     | **control** | **delete**  | **get**     | **set**     |
-| **diag.snapshot**    |             |             |             | [\|X\|](#uri---diagsnapshot) |             |
-| **diag.thermal**     |             |             |             | [\|X\|](#uri---diagthermal) |             |
-| **eth**              |             |             |             | [\|X\|](#uri---eth) |             |
-| **eth.id**           |             |             |             | [\|X\|](#uri---etheth\_interface\_id) | [\|X\|](#uri---etheth\_interface\_idcmdset) |
-| **net**              |             |             |             | [\|X\|](#uri---net) |             |
-| **net.https**        |             |             |             | [\|X\|](#uri---netnet\_service\_id) | [\|X\|](#uri---netnet\_service\_idcmdset) |
-| **net.id**           |             |             |             | [\|X\|](#uri---netnet\_service\_id) | [\|X\|](#uri---netnet\_service\_idcmdset) |
-| **net.ntp**          |             |             |             | [\|X\|](#uri---netnet\_service\_id) | [\|X\|](#uri---netnet\_service\_idcmdset) |
-| **net.redis**        |             |             |             | [\|X\|](#uri---netredis) | [\|X\|](#uri---netrediscmdset) |
-| **net.ssdp**         |             |             |             | [\|X\|](#uri---netssdp) | [\|X\|](#uri---netssdpcmdset) |
-| **-**                | **add**     | **control** | **delete**  | **get**     | **set**     |
-| **net.ssh**          |             |             |             | [\|X\|](#uri---netnet\_service\_id) | [\|X\|](#uri---netnet\_service\_idcmdset) |
-| **sec.cert**         |             |             |             | [\|X\|](#uri---seccert) |             |
-| **sec.cert.id**      |             |             | [\|X\|](#uri---seccertcert\_idcmddelete) | [\|X\|](#uri---seccertcert\_id) | [\|X\|](#uri---seccertcert\_idcmdset) |
-| **sw**               |             |             |             | [\|X\|](#uri---sw) |             |
-| **sw.rfs**           |             |             |             | [\|X\|](#uri---swrfs) | [\|X\|](#uri---swrfscmdset) |
-| **sys**              |             | [\|X\|](#uri---syscmdcontrol) |             | [\|X\|](#uri---sys) |             |
-| **task**             |             |             | [\|X\|](#uri---taskcmddelete) | [\|X\|](#uri---task) |             |
-| **task.id**          |             | [\|X\|](#uri---tasktask\_idcmdcontrol) | [\|X\|](#uri---tasktask\_idcmddelete) | [\|X\|](#uri---tasktask\_id) |             |
-| **time**             |             |             |             | [\|X\|](#uri---time) | [\|X\|](#uri---timeutccmdset) |
-| **user.admin**       |             |             |             |             | [\|X\|](#uri---usersuser\_idcmdset) |
-| **vcloud**           |             |             |             | [\|X\|](#uri---vcloud) |             |
-| **-**                | **add**     | **control** | **delete**  | **get**     | **set**     |
+| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+|----------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|
+| **cntr**             |                                                 |                                                 | [[X]](#uri---cntrcmddelete)                     | [[X]](#uri---cntr)                              |                                                 |
+| **cntr.image**       | [[X]](#uri---cntrimagecmdadd)                   |                                                 | [[X]](#uri---cntrimagecmddelete)                | [[X]](#uri---cntrimage)                         |                                                 |
+| **cntr.image.id**    |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
+| **cntr.service**     | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
+| **cntr.service.id**  |                                                 | [[X]](#uri---cntrserviceservice\_idcmdcontrol)  | [[X]](#uri---cntrserviceservice\_idcmddelete)   | [[X]](#uri---cntrserviceservice\_id)            |                                                 |
+| **diag.log**         |                                                 |                                                 | [[X]](#uri---diaglogcmddelete)                  | [[X]](#uri---diaglog)                           |                                                 |
+| **diag.log.id**      |                                                 |                                                 | [[X]](#uri---diagloglog\_idcmddelete)           | [[X]](#uri---diagloglog\_id)                    |                                                 |
+| **diag.net.id**      |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
+| **diag.power**       |                                                 |                                                 |                                                 | [[X]](#uri---diagpower)                         |                                                 |
+| **diag.resource**    |                                                 |                                                 |                                                 | [[X]](#uri---diagresource)                      |                                                 |
+| **diag.resource.id** |                                                 |                                                 |                                                 | [[X]](#uri---diagresourceresource\_id)          |                                                 |
+| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+| **diag.snapshot**    |                                                 |                                                 |                                                 | [[X]](#uri---diagsnapshot)                      |                                                 |
+| **diag.thermal**     |                                                 |                                                 |                                                 | [[X]](#uri---diagthermal)                       |                                                 |
+| **eth**              |                                                 |                                                 |                                                 | [[X]](#uri---eth)                               |                                                 |
+| **eth.id**           |                                                 |                                                 |                                                 | [[X]](#uri---etheth\_interface\_id)             | [[X]](#uri---etheth\_interface\_idcmdset)       |
+| **net**              |                                                 |                                                 |                                                 | [[X]](#uri---net)                               |                                                 |
+| **net.https**        |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.id**           |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.ntp**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.redis**        |                                                 |                                                 |                                                 | [[X]](#uri---netredis)                          | [[X]](#uri---netrediscmdset)                    |
+| **net.ssdp**         |                                                 |                                                 |                                                 | [[X]](#uri---netssdp)                           | [[X]](#uri---netssdpcmdset)                     |
+| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+| **net.ssh**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **sec.cert**         |                                                 |                                                 |                                                 | [[X]](#uri---seccert)                           |                                                 |
+| **sec.cert.id**      |                                                 |                                                 | [[X]](#uri---seccertcert\_idcmddelete)          | [[X]](#uri---seccertcert\_id)                   | [[X]](#uri---seccertcert\_idcmdset)             |
+| **sw**               |                                                 |                                                 |                                                 | [[X]](#uri---sw)                                |                                                 |
+| **sw.rfs**           |                                                 |                                                 |                                                 | [[X]](#uri---swrfs)                             | [[X]](#uri---swrfscmdset)                       |
+| **sys**              |                                                 | [[X]](#uri---syscmdcontrol)                     |                                                 | [[X]](#uri---sys)                               |                                                 |
+| **task**             |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
+| **task.id**          |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
+| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timeutccmdset)                     |
+| **user.admin**       |                                                 |                                                 |                                                 |                                                 | [[X]](#uri---usersuser\_idcmdset)               |
+| **vcloud**           |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
+| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 
 
 ---
@@ -538,7 +575,7 @@ Control a container service.
 {
     "cmd": "control",
     "data": {
-        "action": "reboot"
+        "action": "stop"
     }
 }
 ```
@@ -561,9 +598,12 @@ Running services will be stopped.  Enabled services will be disabled.
 - **Target Id**: cntr_service_deploy
 - **Command**: `add`
 - **Output**:
+    - **force\_add**     : Force deployment.
+                                Take action if another service with the same `service_class` already exists.
+                                If `true`, then remove the previous service and deploy this one.
+                                If `false`, then fail this deployment.
     - **host\_network**  : Host network enabled.
-    - **images**         : 
-        - ***Array***: Image id
+    - **image**          : Image id
     - **mounts**         : 
         - ***Array***:
             - **dst\_path**   : Mount destination path.
@@ -577,6 +617,8 @@ Running services will be stopped.  Enabled services will be disabled.
             - **port\_type**  : Network port type `udp`|`tcp`.
             - **src\_intf**   : Source network interface.
             - **src\_port**   : Source network port.
+    - **restart\_mode**  : Action to take on container service abnormal exit `restart`|`reboot`|`ignore`.
+    - **restart\_wait**  : Time to wait after abnormal exit before restarting (secs).
     - **service\_class** : Service class.
     - **service\_name**  : Service name.
     - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
@@ -590,10 +632,9 @@ Container service deploy.
 # Output
 {
     "data": {
+        "force_add": false,
         "host_network": false,
-        "images": [
-            "796c45706c2b"
-        ],
+        "image": "796c45706c2b",
         "mounts": [
             {
                 "dst_path": "/etc/rkt/config",
@@ -611,6 +652,8 @@ Container service deploy.
                 "src_port": 6379
             }
         ],
+        "restart_mode": "restart",
+        "restart_wait": 30,
         "service_class": "gbpdataacquisition",
         "service_name": "gbpdataacquisitiond02adb1f35d343a4acaf7b6861dc2714",
         "service_state": "run"
