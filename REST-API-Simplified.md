@@ -1124,30 +1124,56 @@ Ethernet interface list.
 - **Target Id**: eth_interface_details
 - **Command**: `get`
 - **Output**:
-    - **auto\_neg**            : Auto-negotiate (bool)
-    - **enabled**              : Enabled (bool)
+    - **broadcast\_enabled**   : Broadcast is enabled (bool)
+    - **carrier**              : Carrier found (bool)
+    - **config**               : 
+        - **dhcp\_use\_dns** : Use DHCP name servers (bool)
+        - **ipv4**           : 
+            - **addrs** : 
+                - ***Array***:
+                    - **address**   : IPv4 address
+                    - **broadcast** : Broadcast address
+                    - **gateway**   : Gateway address
+                    - **mask\_len** : Subnet mask length
+                    - **metric**    : Route metric (int)
+            - **mode**  : Address mode (`static`|`dhcp`)
+        - **ipv6**           : 
+            - **addrs** : 
+                - ***Array***:
+                    - **address**     : IPv6 address
+                    - **prefix\_len** : Prefix length
+            - **mode**  : Address mode (`static`|`dhcp`)
+        - **name\_servers**  : 
+            - ***Array***: Name server address (IPv4 and/or IPv6)
+    - **current**              : 
+        - **ipv4**          : 
+            - **addrs**  : 
+                - ***Array***:
+                    - **address**    : IPv4 address
+                    - **broadcast**  : Broadcast address
+                    - **mask\_len**  : Subnet mask length
+                    - **pref\_lft**  : Preferred lifetime
+                    - **valid\_lft** : Valid lifetime
+            - **routes** : 
+                - ***Array***:
+                    - **gateway** : Gateway address
+                    - **metric**  : Route metric (int)
+        - **ipv6**          : 
+            - **addrs** : 
+                - ***Array***:
+                    - **address**     : IPv6 address
+                    - **pref\_lft**   : Preferred lifetime
+                    - **prefix\_len** : Prefix length
+                    - **valid\_lft**  : Valid lifetime
+        - **name\_servers** : 
+            - ***Array***: Name server address (IPv4 and/or IPv6)
+    - **duplex**               : Duplex (`full`|`half`)
     - **eth\_interface\_id**   : Ethernet interface id.
     - **eth\_interface\_name** : Ethernet interface name.
-    - **full\_duplex**         : Full duplex (bool)
-    - **host\_name**           : Host name.
-    - **ipv4\_addresses**      : 
-        - ***Array***:
-            - **address**           : IPv4 address
-            - **address\_origin**   : Address origin (`static`|`dhcp`)
-            - **gateway**           : Gateway address
-            - **member\_idx**       : See [member\_idx](#point---member_idx)
-            - **subnet\_mask\_len** : Subnet mask length
-    - **ipv6\_addresses**      : 
-        - ***Array***:
-            - **address**         : IPv6 address
-            - **address\_origin** : Address origin (`static`|`dhcpv6`)
-            - **address\_state**  : Address state
-            - **member\_idx**     : See [member\_idx](#point---member_idx)
-            - **prefix\_len**     : Prefix length
     - **mac\_address**         : MAC address
     - **mtu\_size**            : Maximum transmission unit (bytes)
-    - **name\_servers**        : 
-        - ***Array***: Name server address (IPv4 and/or IPv6)
+    - **multicast\_enabled**   : Multicast is enabled (bool)
+    - **oper\_state**          : Operational state (`up`|`down`|`unknown`...)
     - **speed\_mbps**          : Interface speed (Mbps)
 - **Released In**: None
 
@@ -1159,35 +1185,74 @@ Ethernet interface details for `eth_interface_id`.
 # Output
 {
     "data": {
-        "auto_neg": true,
-        "enabled": true,
+        "broadcast_enabled": true,
+        "carrier": true,
+        "config": {
+            "dhcp_use_dns": false,
+            "ipv4": {
+                "addrs": [
+                    {
+                        "address": "126.1.70.200",
+                        "broadcast": "126.255.255.255",
+                        "gateway": "126.1.70.1",
+                        "mask_len": 24,
+                        "metric": 200
+                    }
+                ],
+                "mode": "static"
+            },
+            "ipv6": {
+                "addrs": [
+                    {
+                        "address": "fe80::2e0:86ff:fe2d:49c6",
+                        "prefix_len": 64
+                    }
+                ],
+                "mode": "static"
+            },
+            "name_servers": [
+                "8.8.8.8"
+            ]
+        },
+        "current": {
+            "ipv4": {
+                "addrs": [
+                    {
+                        "address": "126.1.70.200",
+                        "broadcast": "126.255.255.255",
+                        "mask_len": 24,
+                        "pref_lft": "forever",
+                        "valid_lft": "forever"
+                    }
+                ],
+                "routes": [
+                    {
+                        "gateway": "126.1.70.1",
+                        "metric": 200
+                    }
+                ]
+            },
+            "ipv6": {
+                "addrs": [
+                    {
+                        "address": "fe80::2e0:86ff:fe2d:49c6",
+                        "pref_lft": "forever",
+                        "prefix_len": 64,
+                        "valid_lft": "forever"
+                    }
+                ]
+            },
+            "name_servers": [
+                "8.8.8.8"
+            ]
+        },
+        "duplex": "full",
         "eth_interface_id": "enp2s0",
         "eth_interface_name": "enp2s0(LAN1)",
-        "full_duplex": true,
-        "host_name": "RDU-BB39946E-5CBB-11D4-9177-00E0862D49C6",
-        "ipv4_addresses": [
-            {
-                "address": "126.1.70.200",
-                "address_origin": "static",
-                "gateway": "126.1.70.1",
-                "member_idx": 1,
-                "subnet_mask_len": 24
-            }
-        ],
-        "ipv6_addresses": [
-            {
-                "address": "fe80::2e0:86ff:fe2d:49c6",
-                "address_origin": "dhcpv6",
-                "address_state": "preferred",
-                "member_idx": 1,
-                "prefix_len": 64
-            }
-        ],
         "mac_address": "00:e0:86:2d:49:c6",
         "mtu_size": 1500,
-        "name_servers": [
-            "8.8.8.8"
-        ],
+        "multicast_enabled": true,
+        "oper_state": "up",
         "speed_mbps": 100
     },
     "status": {
@@ -1202,24 +1267,23 @@ Ethernet interface details for `eth_interface_id`.
 ### URI - /eth/{eth\_interface\_id}?cmd=set
 - **Target Id**: eth_interface_update
 - **Command**: `set`
-- **Output**:
-    - **enabled**         : Enabled (bool)
-    - **host\_name**      : Host name.
-    - **ipv4\_addresses** : 
-        - ***Array***:
-            - **address**           : IPv4 address
-            - **address\_origin**   : Address origin (`static`|`dhcp`)
-            - **gateway**           : Gateway address
-            - **member\_idx**       : See [member\_idx](#point---member_idx)
-            - **subnet\_mask\_len** : Subnet mask length
-    - **ipv6\_addresses** : 
-        - ***Array***:
-            - **address**         : IPv6 address
-            - **address\_origin** : Address origin (`static`|`dhcpv6`)
-            - **address\_state**  : Address state
-            - **member\_idx**     : See [member\_idx](#point---member_idx)
-            - **prefix\_len**     : Prefix length
-    - **name\_servers**   : 
+- **Input**:
+    - **dhcp\_use\_dns** : Use DHCP name servers (bool)
+    - **ipv4**           : 
+        - **addrs** : 
+            - ***Array***:
+                - **address**   : IPv4 address
+                - **broadcast** : Broadcast address
+                - **gateway**   : Gateway address
+                - **mask\_len** : Subnet mask length
+        - **mode**  : Address mode (`static`|`dhcp`)
+    - **ipv6**           : 
+        - **addrs** : 
+            - ***Array***:
+                - **address**     : IPv6 address
+                - **prefix\_len** : Prefix length
+        - **mode**  : Address mode (`static`|`dhcp`)
+    - **name\_servers**  : 
         - ***Array***: Name server address (IPv4 and/or IPv6)
 - **Released In**: None
 
@@ -1228,36 +1292,34 @@ Ethernet interface update for `eth_interface_id`.
 
 #### Example
 ```
-# Output
+# Data Input
 {
+    "cmd": "set",
     "data": {
-        "enabled": true,
-        "host_name": "RDU-BB39946E-5CBB-11D4-9177-00E0862D49C6",
-        "ipv4_addresses": [
-            {
-                "address": "126.1.70.200",
-                "address_origin": "static",
-                "gateway": "126.1.70.1",
-                "member_idx": 1,
-                "subnet_mask_len": 24
-            }
-        ],
-        "ipv6_addresses": [
-            {
-                "address": "fe80::2e0:86ff:fe2d:49c6",
-                "address_origin": "dhcpv6",
-                "address_state": "preferred",
-                "member_idx": 1,
-                "prefix_len": 64
-            }
-        ],
+        "dhcp_use_dns": false,
+        "ipv4": {
+            "addrs": [
+                {
+                    "address": "126.1.70.200",
+                    "broadcast": "126.255.255.255",
+                    "gateway": "126.1.70.1",
+                    "mask_len": 24
+                }
+            ],
+            "mode": "static"
+        },
+        "ipv6": {
+            "addrs": [
+                {
+                    "address": "fe80::2e0:86ff:fe2d:49c6",
+                    "prefix_len": 64
+                }
+            ],
+            "mode": "static"
+        },
         "name_servers": [
             "8.8.8.8"
         ]
-    },
-    "status": {
-        "code": 0,
-        "msg": "OK"
     }
 }
 ```
@@ -1696,6 +1758,7 @@ Root file system software details.
         - **mode**    : Boot source override mode
         - **target**  : Boot source override target
     - **firmware\_version**          : Firmware version
+    - **host\_name**                 : Host name
     - **manufacturer**               : Manufacturer
     - **model\_name**                : Specific model of the unit
     - **model\_type**                : Class or type of the unit
@@ -1723,6 +1786,7 @@ System details.
             "target": "Hdd"
         },
         "firmware_version": "2.0.8",
+        "host_name": "RDU-BB39946E-5CBB-11D4-9177-00E0862D49C6",
         "manufacturer": "Vertiv",
         "model_name": "RDU301 Computer System",
         "model_type": "Vertiv Gateway",
@@ -1820,7 +1884,7 @@ Task list.
     - **task\_id**     : Unique task identifier
     - **task\_state**  : Task execution state
     - **time\_start**  : Task start time
-    - **time\_stop**   : Task start time
+    - **time\_stop**   : Task stop time
 - **Released In**: None
 
 #### Example
