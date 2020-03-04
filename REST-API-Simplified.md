@@ -1386,6 +1386,7 @@ The RDU301 currently supports the following network services:
     - **port\_type**         : Network port type `tcp`|`udp`.
     - **remote\_host**       : Redis remote host
     - **remote\_port**       : Redis remote port
+    - **started**            : Network service is started.
 - **Released In**: None
 
 #### Description
@@ -1398,11 +1399,12 @@ Redis secure tunnel service public details.
     "data": {
         "enabled": true,
         "net_service_id": "redis",
-        "net_service_intf": "0.0.0.0",
+        "net_service_intf": "localhost",
         "port_num": 6380,
         "port_type": "tcp",
         "remote_host": "126.1.70.100",
-        "remote_port": 6379
+        "remote_port": 6379,
+        "started": true
     },
     "status": {
         "code": 0,
@@ -1424,6 +1426,7 @@ Redis secure tunnel service public details.
     - **port\_num**          : Network port number.
     - **remote\_host**       : Redis remote host
     - **remote\_port**       : Redis remote port
+    - **started**            : Network service is started.
 - **Released In**: None
 
 #### Description
@@ -1441,10 +1444,11 @@ and the client.
         "certificate": "-----BEGIN CERTIFICATE-----\nMIID1zCCAr+gAwI...",
         "enabled": true,
         "key": "@7gS3Q<smn/D^AA{",
-        "net_service_intf": "0.0.0.0",
+        "net_service_intf": "localhost",
         "port_num": 6380,
         "remote_host": "126.1.70.100",
-        "remote_port": 6379
+        "remote_port": 6379,
+        "started": true
     }
 }
 ```
