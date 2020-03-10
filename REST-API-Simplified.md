@@ -11,7 +11,7 @@
 ---
 ## Executive Summary
 - This API is a replacement for the `/redfish/v1` API implemented by Stingray.
-- All URIs defined below will be relative to a versioned root path that is yet to be determined but should be something like `/rapi/v2`.
+- All URIs defined below are relative to the root path `/rapi/v1`.
 - Initial versions will (obviously) contain a subset of the API as development proceeds.  The **Released In** tag should be populated with a version number as each URI is implemented.
 - Implementation priority...
     - [/time](#uri---time)
@@ -139,7 +139,7 @@
 | **sys**              |                                                 | [[X]](#uri---syscmdcontrol)                     |                                                 | [[X]](#uri---sys)                               |                                                 |
 | **task**             |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
 | **task.id**          |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
-| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timeutccmdset)                     |
+| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timecmdset)                        |
 | **user.admin**       |                                                 |                                                 |                                                 |                                                 | [[X]](#uri---usersuser\_idcmdset)               |
 | **vcloud**           |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
 | **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
@@ -196,7 +196,7 @@
     - **task\_list**              : [URI](#uri---task) - `/task` *(Task list.)*
     - **task\_purge**             : [URI](#uri---taskcmddelete) - `/task?cmd=delete` *(Purge (collect garbage) tasks.)*
     - **time\_summary**           : [URI](#uri---time) - `/time` *(System time information.)*
-    - **time\_update**            : [URI](#uri---timeutccmdset) - `/time/utc?cmd=set` *(Set UTC time.)*
+    - **time\_update**            : [URI](#uri---timecmdset) - `/time?cmd=set` *(Set UTC time.)*
     - **user\_password**          : [URI](#uri---usersuser_idcmdset) - `/users/{user_id}?cmd=set` *(Changes the password for `user_id`.)*
     - **vcloud\_summary**         : [URI](#uri---vcloud) - `/vcloud` *(This target is TBD.)*
 - **Released In**: None
@@ -258,7 +258,7 @@ to body content keys.
         "task_list": "/task",
         "task_purge": "/task?cmd=delete",
         "time_summary": "/time",
-        "time_update": "/time/utc?cmd=set",
+        "time_update": "/time?cmd=set",
         "user_password": "/users/{user_id}?cmd=set",
         "vcloud_summary": "/vcloud"
     },
@@ -744,12 +744,28 @@ Services and images will be purged according to the `grace_period`.
 #### Description
 Diagnostic log list.
 
-Journal log lines are extracted. The filter terms are based on `journalctl` and
-are specified using an HTTP query list. As with `journalctl` a cursor can be
-used to page through logs. Supported filter terms are:
-+ --after-cursor={cursor-value}
-+ --lines={max-num-of-lines}
-+ --since={starting-time-for-logs}
+Journal log lines are extracted. The filter terms are based on [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html) and
+are specified using an HTTP query parameter list. As with [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html), a cursor can be
+used to page through logs. 
+
+Supported filter query paramters are:
+
+- `after-cursor=CURSOR` : Start the log after the `CURSOR`.  You obtain a cursor from the `cursor` attribute of a previous log request.
+- `dormant=1` : Read logs from the dormant partition (previous installed version).
+- `identifier=x` : 
+- `lines=N` : Limit number of lines to `N`.
+- `no-hostname=1` : Do not include the hostname in the message text.
+- `output=FORMAT` : See the `--output=` switch for [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html)
+- `output-fields=FIELDS` : See the `--output-fields=` switch for [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html)
+- `priority=PRIORITY` : See the `--priority=` switch for [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html)
+- `quiet=1` : Do not include boot time information in log text.
+- `reverse=1` : Reverse the order of messages (newest first).
+- `since=SINCE` : See the `--since=` switch for [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html)
+- `since-boot=1` : Start log messages from the most recent boot.
+- `unit=UNIT` : To be defined.
+- `until=UNTIL` : See the `--until=` switch for [journalctl](https://www.freedesktop.org/software/systemd/man/journalctl.html)
+- `user-unit=UNIT` : To be defined.
+- `utc=1` : Timestamps in UTC
 
 #### Example
 ```
@@ -1747,6 +1763,7 @@ Root file system software details.
     - **system\_memory\_gib**        : Total system memory in GiB
     - **system\_processor\_count**   : Total number of processors/cores for the system
     - **system\_processor\_summary** : Processor description
+    - **uuid**                       : Unit UUID
 - **Released In**: None
 
 #### Description
@@ -1774,7 +1791,8 @@ System details.
         "system_id": "RDU301-0040471204",
         "system_memory_gib": 4,
         "system_processor_count": 4,
-        "system_processor_summary": "Intel(R) Celeron(R) CPU N3160 @ 1.60GHz"
+        "system_processor_summary": "Intel(R) Celeron(R) CPU N3160 @ 1.60GHz",
+        "uuid": "BB39946E-5CBB-11D4-9177-00E0862D49C6"
     },
     "status": {
         "code": 0,
@@ -1990,7 +2008,7 @@ System time information.
 
 ---
 
-### URI - /time/utc?cmd=set
+### URI - /time?cmd=set
 - **Target Id**: time_update
 - **Command**: `set`
 - **Input**:
