@@ -50,6 +50,11 @@
 ---
 ## API Basics
 - Loosely modeled after the [Geist API](http://releases.geist.local/documentation/api/latest/geist_api_public.html)
+- Some requests, typically those of long duration, are processed asynchronously. The initial HTTP response
+  will be `202 Accepted`, and a task ID will be provided to allow monitoring of the task using the
+  [/task](#uri---task) resource. Only a few requests are expected to be processed asynchronously, however
+  it is desirable for the client to be able to dynamically handle a 202 status code in for most resources.
+  Obvious exceptions include the [/task](#uri---task) resource.
 - Virtually every request is a POST
     - We may eventually translate a GET request into an implied body with nothing but: `"cmd" : "get"`.
     - POST input body
@@ -61,9 +66,12 @@
         - `data` : Optional data map specific to the URI target and command verb.
     - Output JSON body
         - `status` : Status parameters
-            - `code` : Numeric code (0 = success, 1-254 = error/warning)
-            - `msg`  : Text message translation of the status
-            - `log`  : Optional log URL containing command log output
+            - `code`    : Numeric code (0 = success, 1-254 = error/warning)
+            - `msgs`    : Array of text message(s) associated with the status. For error cases, this attribute
+                          will typically contain diagnostic information.
+            - `task_id` : For asynchronous (e.g. long duration) operations, the task ID to use for monitoring
+                          the operation via the [/task](#uri---task) resource. This attribute should always
+                          be present in the case of a `202 Accepted` HTTP status code.
         - `data` : Optional data specific to the URI target, command verb, and status.
 - Output file streams
     - API requests that generate a file stream or static reference will return a relative URL that can be used on a subsequent GET
@@ -106,9 +114,8 @@
 | **cntr.image.id**    |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
 | **cntr.service**     | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
 | **cntr.service.id**  |                                                 | [[X]](#uri---cntrserviceservice\_idcmdcontrol)  | [[X]](#uri---cntrserviceservice\_idcmddelete)   | [[X]](#uri---cntrserviceservice\_id)            |                                                 |
-| **diag.log**         |                                                 |                                                 | [[X]](#uri---diaglogcmddelete)                  | [[X]](#uri---diaglog)                           |                                                 |
-| **diag.log.id**      |                                                 |                                                 | [[X]](#uri---diagloglog\_idcmddelete)           | [[X]](#uri---diagloglog\_id)                    |                                                 |
-| **diag.net.id**      |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
+| **diag.log**         |                                                 |                                                 |                                                 | [[X]](#uri---diaglogfilter)                     |                                                 |
+| **diag.net**         |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
 | **diag.power**       |                                                 |                                                 |                                                 | [[X]](#uri---diagpower)                         |                                                 |
 | **diag.resource**    |                                                 |                                                 |                                                 | [[X]](#uri---diagresource)                      |                                                 |
 | **diag.resource.id** |                                                 |                                                 |                                                 | [[X]](#uri---diagresourceresource\_id)          |                                                 |
@@ -123,8 +130,8 @@
 | **net.ntp**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
 | **net.redis**        |                                                 |                                                 |                                                 | [[X]](#uri---netredis)                          | [[X]](#uri---netrediscmdset)                    |
 | **net.ssdp**         |                                                 |                                                 |                                                 | [[X]](#uri---netssdp)                           | [[X]](#uri---netssdpcmdset)                     |
-| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 | **net.ssh**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 | **sec.cert**         |                                                 |                                                 |                                                 | [[X]](#uri---seccert)                           |                                                 |
 | **sec.cert.id**      |                                                 |                                                 | [[X]](#uri---seccertcert\_idcmddelete)          | [[X]](#uri---seccertcert\_id)                   | [[X]](#uri---seccertcert\_idcmdset)             |
 | **sw**               |                                                 |                                                 |                                                 | [[X]](#uri---sw)                                |                                                 |
@@ -157,10 +164,7 @@
     - **cntr\_service\_list**     : [URI](#uri---cntrservice) - `/cntr/service` *(Container summary.)*
     - **cntr\_service\_purge**    : [URI](#uri---cntrservicecmddelete) - `/cntr/service?cmd=delete` *(Purge (collect garbage) container services.)*
     - **cntr\_summary**           : [URI](#uri---cntr) - `/cntr` *(Container summary.)*
-    - **diag\_log\_delete**       : [URI](#uri---diagloglog_idcmddelete) - `/diag/log/{log_id}?cmd=delete` *(Delete log `log_id`.)*
-    - **diag\_log\_details**      : [URI](#uri---diagloglog_id) - `/diag/log/{log_id}` *(Output log details for `log_id`.)*
-    - **diag\_log\_list**         : [URI](#uri---diaglog) - `/diag/log` *(Diagnostic log list.)*
-    - **diag\_log\_purge**        : [URI](#uri---diaglogcmddelete) - `/diag/log?cmd=delete` *(Purge (collect garbage) diagnostic logs.)*
+    - **diag\_log\_list**         : [URI](#uri---diaglogfilter) - `/diag/log?{filter}` *(Diagnostic log list.)*
     - **diag\_net\_control**      : [URI](#uri---diagnetcmdcontrol) - `/diag/net?cmd=control` *((**async**) Perform network diagnostics.)*
     - **diag\_power\_details**    : [URI](#uri---diagpower) - `/diag/power` *(Report power diagnostics.)*
     - **diag\_resource\_details** : [URI](#uri---diagresourceresource_id) - `/diag/resource/{resource_id}` *(Details diagnostics for system resources.)*
@@ -222,10 +226,7 @@ to body content keys.
         "cntr_service_list": "/cntr/service",
         "cntr_service_purge": "/cntr/service?cmd=delete",
         "cntr_summary": "/cntr",
-        "diag_log_delete": "/diag/log/{log_id}?cmd=delete",
-        "diag_log_details": "/diag/log/{log_id}",
-        "diag_log_list": "/diag/log",
-        "diag_log_purge": "/diag/log?cmd=delete",
+        "diag_log_list": "/diag/log?{filter}",
         "diag_net_control": "/diag/net?cmd=control",
         "diag_power_details": "/diag/power",
         "diag_resource_details": "/diag/resource/{resource_id}",
@@ -263,7 +264,9 @@ to body content keys.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -281,9 +284,7 @@ to body content keys.
             - **image\_state** : Image state `used`|`orphan`
     - **services** : 
         - ***Array***:
-            - **service\_class** : Service class.
             - **service\_id**    : Service id.
-            - **service\_name**  : Service name.
             - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
 - **Released In**: None
 
@@ -304,16 +305,16 @@ Container summary.
         ],
         "services": [
             {
-                "service_class": "gbpdataacquisition",
                 "service_id": "3d25301a",
-                "service_name": "gbpdataacquisitiond02adb1f35d343a4acaf7b6861dc2714",
                 "service_state": "run"
             }
         ]
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -326,7 +327,6 @@ Container summary.
 - **Output**:
     - ***Array***:
         - **image\_id**    : Image id.
-        - **image\_name**  : Image name.
         - **image\_state** : Image state `used`|`orphan`
 - **Released In**: None
 
@@ -340,13 +340,14 @@ Container image list.
     "data": [
         {
             "image_id": "796c45706c2b",
-            "image_name": "rdumanagerservices:202002031",
             "image_state": "used"
         }
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -355,7 +356,7 @@ Container image list.
 
 ### URI - /cntr/image/{image\_id}
 - **Target Id**: cntr_image_details
-- **Command**: `add`
+- **Command**: `get`
 - **Output**:
     - **image\_id**     : Image id.
     - **image\_name**   : Image name.
@@ -380,7 +381,9 @@ Container image details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -456,9 +459,8 @@ Orphaned images will be purged according to the `grace_period`.
 - **Command**: `get`
 - **Output**:
     - ***Array***:
-        - **service\_class** : Service class.
+        - **image\_id**      : Image id.
         - **service\_id**    : Service id.
-        - **service\_name**  : Service name.
         - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
 - **Released In**: None
 
@@ -471,15 +473,16 @@ Container summary.
 {
     "data": [
         {
-            "service_class": "gbpdataacquisition",
+            "image_id": "1c2b6f88",
             "service_id": "3d25301a",
-            "service_name": "gbpdataacquisitiond02adb1f35d343a4acaf7b6861dc2714",
             "service_state": "run"
         }
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -491,8 +494,7 @@ Container summary.
 - **Command**: `get`
 - **Output**:
     - **host\_network**  : Host network enabled.
-    - **images**         : 
-        - ***Array***: Image id
+    - **image\_id**      : Image id
     - **mounts**         : 
         - ***Array***:
             - **dst\_path**   : Mount destination path.
@@ -506,9 +508,7 @@ Container summary.
             - **port\_type**  : Network port type `udp`|`tcp`.
             - **src\_intf**   : Source network interface.
             - **src\_port**   : Source network port.
-    - **service\_class** : Service class.
     - **service\_id**    : Service id.
-    - **service\_name**  : Service name.
     - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
     - **start\_time**    : Start time.
     - **stop\_time**     : Stop time.
@@ -523,9 +523,7 @@ Container service details.
 {
     "data": {
         "host_network": false,
-        "images": [
-            "796c45706c2b"
-        ],
+        "image_id": "796c45706c2b",
         "mounts": [
             {
                 "dst_path": "/etc/rkt/config",
@@ -543,16 +541,16 @@ Container service details.
                 "src_port": 6379
             }
         ],
-        "service_class": "gbpdataacquisition",
         "service_id": "3d25301a",
-        "service_name": "gbpdataacquisitiond02adb1f35d343a4acaf7b6861dc2714",
         "service_state": "run",
         "start_time": "2020-02-03T01:02:03",
         "stop_time": "2020-02-06T00:01:02"
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -597,31 +595,39 @@ Running services will be stopped.  Enabled services will be disabled.
 ### URI - /cntr/service?cmd=add
 - **Target Id**: cntr_service_deploy
 - **Command**: `add`
-- **Output**:
-    - **force\_add**     : Force deployment.
+- **Input**:
+    - **envs**                   : 
+        - ***Array***:
+            - **name**  : Environment var name
+            - **value** : Environemnt var value
+    - **force\_add**             : Force deployment.
                                 Take action if another service with the same `service_class` already exists.
                                 If `true`, then remove the previous service and deploy this one.
                                 If `false`, then fail this deployment.
-    - **host\_network**  : Host network enabled.
-    - **image**          : Image id
-    - **mounts**         : 
+    - **host\_network**          : Host network enabled.
+    - **image\_id**              : Image id
+    - **mounts**                 : 
         - ***Array***:
             - **dst\_path**   : Mount destination path.
             - **member\_idx** : See [member\_idx](#point---member_idx)
             - **mount\_type** : Mount type.
             - **src\_path**   : Mount source path.
-    - **networks**       : 
+    - **networks**               : 
         - ***Array***:
             - **dst\_port**   : Destination port.
             - **member\_idx** : See [member\_idx](#point---member_idx)
             - **port\_type**  : Network port type `udp`|`tcp`.
             - **src\_intf**   : Source network interface.
             - **src\_port**   : Source network port.
-    - **restart\_mode**  : Action to take on container service abnormal exit `restart`|`reboot`|`ignore`.
-    - **restart\_wait**  : Time to wait after abnormal exit before restarting (secs).
-    - **service\_class** : Service class.
-    - **service\_name**  : Service name.
-    - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
+    - **restart\_mode**          : Action to take on container service abnormal exit `restart`|`reboot`|`ignore`.
+    - **restart\_wait**          : Time to wait after abnormal exit before restarting (secs).
+    - **service\_enable\_state** : Service enable state `enabled`|`disabled`.
+    - **service\_exec**          : 
+        - **args**    : 
+            - ***Array***: Command argument
+        - **command** : Start command
+    - **service\_id**            : Image id
+    - **service\_run\_state**    : Service run state `run`|`stop`.
 - **Released In**: None
 
 #### Description
@@ -629,12 +635,19 @@ Container service deploy.
 
 #### Example
 ```
-# Output
+# Data Input
 {
+    "cmd": "add",
     "data": {
+        "envs": [
+            {
+                "name": "REMOTE_IP",
+                "value": "10.11.12.13"
+            }
+        ],
         "force_add": false,
         "host_network": false,
-        "image": "796c45706c2b",
+        "image_id": "796c45706c2b",
         "mounts": [
             {
                 "dst_path": "/etc/rkt/config",
@@ -654,13 +667,15 @@ Container service deploy.
         ],
         "restart_mode": "restart",
         "restart_wait": 30,
-        "service_class": "gbpdataacquisition",
-        "service_name": "gbpdataacquisitiond02adb1f35d343a4acaf7b6861dc2714",
-        "service_state": "run"
-    },
-    "status": {
-        "code": 0,
-        "msg": "OK"
+        "service_enable_state": "enabled",
+        "service_exec": {
+            "args": [
+                "myapp.dll"
+            ],
+            "command": "dotnet"
+        },
+        "service_id": "06c2b34d9c68",
+        "service_run_state": "run"
     }
 }
 ```
@@ -717,114 +732,40 @@ Services and images will be purged according to the `grace_period`.
 
 ---
 
-### URI - /diag/log
+### URI - /diag/log?{filter}
 - **Target Id**: diag_log_list
 - **Command**: `get`
 - **Output**:
-    - ***Array***:
-        - **create\_time** : Log creation time.
-        - **log\_id**      : Log identifier
-        - **log\_size**    : Last known size of the log in bytes.
-        - **log\_state**   : Log usage state: `open`|`closed`|`orphan`
-        - **log\_url**     : URL to get log content
-        - **mod\_time**    : Last known modification time.
-        - **task\_id**     : Optional `task_id` that produced the log.
+    - **cursor** : Log cursor at end of provided lines
+    - **lines**  : 
+        - ***Array***: Log line
 - **Released In**: None
 
 #### Description
 Diagnostic log list.
 
-#### Example
-```
-# Output
-{
-    "data": [
-        {
-            "create_time": "2020-02-05T10:21:49",
-            "log_id": "abcd1234",
-            "log_size": 54665,
-            "log_state": "open",
-            "log_url": "https://192.168.254.88/log/abcd1234",
-            "mod_time": "2020-02-05T10:24:22",
-            "task_id": "abcd1234"
-        }
-    ],
-    "status": {
-        "code": 0,
-        "msg": "OK"
-    }
-}
-```
-
----
-
-### URI - /diag/log/{log\_id}
-- **Target Id**: diag_log_details
-- **Command**: `get`
-- **Output**:
-    - **create\_time** : Log creation time.
-    - **log\_id**      : Log identifier
-    - **log\_size**    : Last known size of the log in bytes.
-    - **log\_state**   : Log usage state: `open`|`closed`|`orphan`
-    - **log\_url**     : URL to get log content
-    - **mod\_time**    : Last known modification time.
-    - **task\_id**     : Optional `task_id` that produced the log.
-- **Released In**: None
-
-#### Description
-Output log details for `log_id`.
+Journal log lines are extracted. The filter terms are based on `journalctl` and
+are specified using an HTTP query list. As with `journalctl` a cursor can be
+used to page through logs. Supported filter terms are:
++ --after-cursor={cursor-value}
++ --lines={max-num-of-lines}
++ --since={starting-time-for-logs}
 
 #### Example
 ```
 # Output
 {
     "data": {
-        "create_time": "2020-02-05T10:21:49",
-        "log_id": "abcd1234",
-        "log_size": 54665,
-        "log_state": "open",
-        "log_url": "https://192.168.254.88/log/abcd1234.log",
-        "mod_time": "2020-02-05T10:24:22",
-        "task_id": "abcd1234"
+        "cursor": "s=e2510ca6680a471fb5be0b...",
+        "lines": [
+            "Mar 07 00:42:19 west_rdu NetworkManager[749] Start"
+        ]
     },
     "status": {
         "code": 0,
-        "msg": "OK"
-    }
-}
-```
-
----
-
-### URI - /diag/log/{log\_id}?cmd=delete
-- **Target Id**: diag_log_delete
-- **Command**: `delete`
-- **Released In**: None
-
-#### Description
-Delete log `log_id`.
-
----
-
-### URI - /diag/log?cmd=delete
-- **Target Id**: diag_log_purge
-- **Command**: `delete`
-- **Input**:
-    - **grace\_period** : See [purge\_grace\_period](#point---purge_grace_period)
-- **Released In**: None
-
-#### Description
-Purge (collect garbage) diagnostic logs.
-
-Orphaned logs will be purged according to the `grace_period`.
-
-#### Example
-```
-# Data Input
-{
-    "cmd": "delete",
-    "data": {
-        "grace_period": "30m"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -868,7 +809,9 @@ Orphaned logs will be purged according to the `grace_period`.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -928,7 +871,9 @@ Report power diagnostics.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -961,7 +906,9 @@ Resource diagnostic list.
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1004,7 +951,9 @@ Possible resource classes:
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1037,7 +986,9 @@ When the snapshot task completes, the diagnostic log file at `log_id` will be po
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1082,7 +1033,9 @@ Report thermal diagnostics.
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1113,7 +1066,9 @@ Ethernet interface list.
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1257,7 +1212,9 @@ Ethernet interface details for `eth_interface_id`.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1368,7 +1325,9 @@ The RDU301 currently supports the following network services:
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1408,7 +1367,9 @@ Redis secure tunnel service public details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1493,7 +1454,9 @@ SSDP service public details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1536,7 +1499,9 @@ Update SSDP service configuration.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1570,7 +1535,9 @@ Network service details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1600,7 +1567,9 @@ Network service details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1671,7 +1640,9 @@ List software components.
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1703,7 +1674,9 @@ Root file system software details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1744,7 +1717,9 @@ Root file system software details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1803,7 +1778,9 @@ System details.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1848,7 +1825,7 @@ Default is `reboot`.
 - **Output**:
     - ***Array***:
         - **task\_id**    : Unique task identifier
-        - **task\_state** : Task execution state
+        - **task\_state** : Task execution state `run`|`exit`
         - **time\_start** : Task start time
 - **Released In**: None
 
@@ -1868,7 +1845,9 @@ Task list.
     ],
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1879,16 +1858,15 @@ Task list.
 - **Target Id**: task_details
 - **Command**: `get`
 - **Output**:
-    - **ext\_data**    : 
+    - **exit\_code**  : Exit code of the asynchronous handler process
+    - **ext\_data**   : 
         - **ext\_val** : Values in `ext_data` are optional and dependent on the creating task.
-    - **ext\_msg**     : 
-        - ***Array***: Task messages
-    - **status\_code** : Exit status code
-    - **status\_msg**  : Exit status message
-    - **task\_id**     : Unique task identifier
-    - **task\_state**  : Task execution state
-    - **time\_start**  : Task start time
-    - **time\_stop**   : Task stop time
+    - **ext\_msg**    : 
+        - ***Array***: Task messages, typically JSON objects. By convention, the last entry should be the final result
+    - **task\_id**    : Unique task identifier
+    - **task\_state** : Task execution state `run`|`exit`
+    - **time\_start** : Task start time
+    - **time\_stop**  : Task stop time
 - **Released In**: None
 
 #### Example
@@ -1896,14 +1874,13 @@ Task list.
 # Output
 {
     "data": {
+        "exit_code": 0,
         "ext_data": {
             "ext_val": ""
         },
         "ext_msg": [
-            "Installation successful."
+            "{\"status\": {\"code\": 0, \"msgs\": [\"Ok\"]}"
         ],
-        "status_code": 0,
-        "status_msg": "OK",
         "task_id": "1122aabb",
         "task_state": "run",
         "time_start": "2020-02-03T15:43:00",
@@ -1911,7 +1888,9 @@ Task list.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -1937,7 +1916,9 @@ Task cancel/kill.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
@@ -2000,7 +1981,9 @@ System time information.
     },
     "status": {
         "code": 0,
-        "msg": "OK"
+        "msg": [
+            "OK"
+        ]
     }
 }
 ```
