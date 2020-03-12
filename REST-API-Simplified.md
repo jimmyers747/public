@@ -264,7 +264,7 @@ to body content keys.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -312,7 +312,7 @@ Container summary.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -345,7 +345,7 @@ Container image list.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -381,7 +381,7 @@ Container image details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -480,7 +480,7 @@ Container summary.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -548,7 +548,7 @@ Container service details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -779,7 +779,7 @@ Supported filter query paramters are:
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -797,8 +797,7 @@ Supported filter query paramters are:
         - **ping\_count**   : Number of packets to send.
         - **ping\_timeout** : Ping timeout (secs).
 - **Output**:
-    - **log\_id**  : Log id for the network diagnostics.
-    - **task\_id** : Async task id
+    - **log\_id** : Log id for the network diagnostics.
 - **Released In**: None
 
 #### Description
@@ -820,14 +819,14 @@ Supported filter query paramters are:
 # Output
 {
     "data": {
-        "log_id": "abcd1234",
-        "task_id": "3344eeff"
+        "log_id": "abcd1234"
     },
     "status": {
         "code": 0,
-        "msg": [
-            "OK"
-        ]
+        "msgs": [
+            "In progress"
+        ],
+        "task_id": "1234"
     }
 }
 ```
@@ -887,7 +886,7 @@ Report power diagnostics.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -922,7 +921,7 @@ Resource diagnostic list.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -967,7 +966,7 @@ Possible resource classes:
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -980,8 +979,7 @@ Possible resource classes:
 - **Target Id**: diag_snapshot
 - **Command**: `get`
 - **Output**:
-    - **log\_id**  : Log id of the snapshot tgz archive that is created.
-    - **task\_id** : Async task id
+    - **log\_id** : Log id of the snapshot tgz archive that is created.
 - **Released In**: None
 
 #### Description
@@ -997,14 +995,14 @@ When the snapshot task completes, the diagnostic log file at `log_id` will be po
 # Output
 {
     "data": {
-        "log_id": "abcd1234",
-        "task_id": "3344eeff"
+        "log_id": "abcd1234"
     },
     "status": {
         "code": 0,
-        "msg": [
-            "OK"
-        ]
+        "msgs": [
+            "In progress"
+        ],
+        "task_id": "1234"
     }
 }
 ```
@@ -1049,7 +1047,7 @@ Report thermal diagnostics.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1082,7 +1080,7 @@ Ethernet interface list.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1228,7 +1226,7 @@ Ethernet interface details for `eth_interface_id`.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1341,7 +1339,7 @@ The RDU301 currently supports the following network services:
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1383,7 +1381,7 @@ Redis secure tunnel service public details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1470,7 +1468,7 @@ SSDP service public details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1515,7 +1513,7 @@ Update SSDP service configuration.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1551,7 +1549,7 @@ Network service details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1583,7 +1581,7 @@ Network service details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1656,7 +1654,7 @@ List software components.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1690,7 +1688,7 @@ Root file system software details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1707,8 +1705,7 @@ Root file system software details.
     - **update\_mode**   : Update mode hint: `normal`|`network-copy-only`|`factory-defaults`
     - **update\_reboot** : Reboot on success: `reboot`|`no-reboot`
 - **Output**:
-    - **log\_id**  : Log id for any update log output and messages.
-    - **task\_id** : Async task id
+    - **log\_id** : Log id for any update log output and messages.
 - **Released In**: None
 
 #### Description
@@ -1728,14 +1725,14 @@ Root file system software details.
 # Output
 {
     "data": {
-        "log_id": "abcd1234",
-        "task_id": "3344eeff"
+        "log_id": "abcd1234"
     },
     "status": {
         "code": 0,
-        "msg": [
-            "OK"
-        ]
+        "msgs": [
+            "In progress"
+        ],
+        "task_id": "1234"
     }
 }
 ```
@@ -1796,7 +1793,7 @@ System details.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1863,7 +1860,7 @@ Task list.
     ],
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1906,7 +1903,7 @@ Task list.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1934,7 +1931,7 @@ Task cancel/kill.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
@@ -1999,7 +1996,7 @@ System time information.
     },
     "status": {
         "code": 0,
-        "msg": [
+        "msgs": [
             "OK"
         ]
     }
