@@ -1873,15 +1873,13 @@ Task list.
 - **Target Id**: task_details
 - **Command**: `get`
 - **Output**:
-    - **exit\_code**  : Exit code of the asynchronous handler process
-    - **ext\_data**   : 
-        - **ext\_val** : Values in `ext_data` are optional and dependent on the creating task.
-    - **ext\_msg**    : 
-        - ***Array***: Task messages, typically JSON objects. By convention, the last entry should be the final result
-    - **task\_id**    : Unique task identifier
-    - **task\_state** : Task execution state `run`|`exit`
-    - **time\_start** : Task start time
-    - **time\_stop**  : Task stop time
+    - **task\_id**     : Unique task identifier
+    - **task\_state**  : Task execution state `run`|`exit`
+    - **task\_status** : 
+        - **code** : Task final status code
+        - **msgs** : Task final message list
+    - **time\_start**  : Task start time
+    - **time\_stop**   : Task stop time
 - **Released In**: None
 
 #### Example
@@ -1889,15 +1887,14 @@ Task list.
 # Output
 {
     "data": {
-        "exit_code": 0,
-        "ext_data": {
-            "ext_val": ""
-        },
-        "ext_msg": [
-            "{\"status\": {\"code\": 0, \"msgs\": [\"Ok\"]}"
-        ],
         "task_id": "1122aabb",
-        "task_state": "run",
+        "task_state": "exit",
+        "task_status": {
+            "code": 0,
+            "msgs": [
+                "OK"
+            ]
+        },
         "time_start": "2020-02-03T15:43:00",
         "time_stop": "2020-02-03T15:43:40"
     },
