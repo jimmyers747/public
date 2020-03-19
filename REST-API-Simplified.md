@@ -109,7 +109,7 @@
 
 | **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 |----------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|
-| **cntr**             |                                                 |                                                 | [[X]](#uri---cntrcmddelete)                     | [[X]](#uri---cntr)                              |                                                 |
+| **cntr**             |                                                 | [[X]](#uri---cntrcmdcontrol)                    | [[X]](#uri---cntrcmddelete)                     | [[X]](#uri---cntr)                              |                                                 |
 | **cntr.image**       | [[X]](#uri---cntrimagecmdadd)                   |                                                 | [[X]](#uri---cntrimagecmddelete)                | [[X]](#uri---cntrimage)                         |                                                 |
 | **cntr.image.id**    |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
 | **cntr.service**     | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
@@ -151,6 +151,7 @@
 - **Target Id**: root
 - **Command**: `get`
 - **Output**:
+    - **cntr\_control**           : [URI](#uri---cntrcmdcontrol) - `/cntr?cmd=control` *(Global actions on cntr objects.)*
     - **cntr\_image\_delete**     : [URI](#uri---cntrimageimage_idcmddelete) - `/cntr/image/{image_id}?cmd=delete` *(Delete a container image if not in use.)*
     - **cntr\_image\_deploy**     : [URI](#uri---cntrimagecmdadd) - `/cntr/image?cmd=add` *(Deploy a container image.)*
     - **cntr\_image\_details**    : [URI](#uri---cntrimageimage_id) - `/cntr/image/{image_id}` *(Container image details.)*
@@ -213,6 +214,7 @@ to body content keys.
 # Output
 {
     "data": {
+        "cntr_control": "/cntr?cmd=control",
         "cntr_image_delete": "/cntr/image/{image_id}?cmd=delete",
         "cntr_image_deploy": "/cntr/image?cmd=add",
         "cntr_image_details": "/cntr/image/{image_id}",
@@ -701,6 +703,33 @@ Container service resources that are no longer needed will be purged according t
     "cmd": "delete",
     "data": {
         "grace_period": "30m"
+    }
+}
+```
+
+---
+
+### URI - /cntr?cmd=control
+- **Target Id**: cntr_control
+- **Command**: `control`
+- **Input**:
+    - **action** : `clean`
+- **Released In**: None
+
+#### Description
+Global actions on cntr objects.
+
+Performs an operation based on **action**:
+
+- `clean`: Kills and removes **ALL** services and images. Normally used as a tool for recovery.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "control",
+    "data": {
+        "action": "clean"
     }
 }
 ```
@@ -1480,7 +1509,7 @@ SSDP service public details.
 ### URI - /net/ssdp?cmd=set
 - **Target Id**: net_ssdp_update
 - **Command**: `set`
-- **Output**:
+- **Input**:
     - **direct\_notify\_addrs**     : 
         - ***Array***: Direct notify IP addresses.
     - **enabled**                   : Network service is enabled.
@@ -1497,8 +1526,9 @@ Update SSDP service configuration.
 
 #### Example
 ```
-# Output
+# Data Input
 {
+    "cmd": "set",
     "data": {
         "direct_notify_addrs": [
             "126.1.70.100"
@@ -1510,12 +1540,6 @@ Update SSDP service configuration.
         "notify_ttl": 2,
         "port_num": 1900,
         "port_type": "udp"
-    },
-    "status": {
-        "code": 0,
-        "msgs": [
-            "OK"
-        ]
     }
 }
 ```
@@ -1542,9 +1566,9 @@ Network service details.
 {
     "data": {
         "enabled": false,
-        "net_service_id": "http",
+        "net_service_id": "ssh",
         "net_service_intf": "0.0.0.0",
-        "port_num": 80,
+        "port_num": 22,
         "port_type": "tcp"
     },
     "status": {
@@ -1560,8 +1584,8 @@ Network service details.
 
 ### URI - /net/{net\_service\_id}?cmd=set
 - **Target Id**: net_service_update
-- **Command**: `get`
-- **Output**:
+- **Command**: `set`
+- **Input**:
     - **enabled**            : Network service is enabled.
     - **net\_service\_intf** : Network service bind interface.
     - **port\_num**          : Network port number.
@@ -1572,18 +1596,13 @@ Network service details.
 
 #### Example
 ```
-# Output
+# Data Input
 {
+    "cmd": "set",
     "data": {
-        "enabled": false,
+        "enabled": true,
         "net_service_intf": "0.0.0.0",
-        "port_num": 80
-    },
-    "status": {
-        "code": 0,
-        "msgs": [
-            "OK"
-        ]
+        "port_num": 22
     }
 }
 ```
