@@ -598,6 +598,7 @@ Running services will be stopped.  Enabled services will be disabled.
 - **Target Id**: cntr_service_deploy
 - **Command**: `add`
 - **Input**:
+    - **bind\_net\_redis**       : Bind to net-redis service for secure tunnel.
     - **envs**                   : 
         - ***Array***:
             - **name**  : Environment var name
@@ -641,6 +642,7 @@ Container service deploy.
 {
     "cmd": "add",
     "data": {
+        "bind_net_redis": true,
         "envs": [
             {
                 "name": "REMOTE_IP",
