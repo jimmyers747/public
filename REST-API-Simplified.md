@@ -39,7 +39,7 @@
     - [/eth](#uri---eth)
         - Ethernet interface configuration
         - This will probably be the most troublesome since errors will cause network connectivity to be lost
-    - [/user/admin](#uri---usersuser_idcmdset)
+    - [/user/admin](#uri---useruser_idcmdset)
         - Change the admin user password
         - Not needed for machine-to-machine communication, more internal from the web service
     - [/sec/cert](#uri---seccert)
@@ -140,7 +140,7 @@
 | **task**             |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
 | **task.id**          |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
 | **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timecmdset)                        |
-| **user.admin**       |                                                 |                                                 |                                                 |                                                 | [[X]](#uri---usersuser\_idcmdset)               |
+| **user.admin**       |                                                 | [[X]](#uri---useruser\_idcmdcontrol)            |                                                 |                                                 | [[X]](#uri---useruser\_idcmdset)                |
 | **vcloud**           |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
 | **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 
@@ -198,7 +198,8 @@
     - **task\_purge**             : [URI](#uri---taskcmddelete) - `/task?cmd=delete` *(Purge (collect garbage) tasks.)*
     - **time\_summary**           : [URI](#uri---time) - `/time` *(System time information.)*
     - **time\_update**            : [URI](#uri---timecmdset) - `/time?cmd=set` *(Set UTC time.)*
-    - **user\_password**          : [URI](#uri---usersuser_idcmdset) - `/users/{user_id}?cmd=set` *(Changes the password for `user_id`.)*
+    - **user\_auth**              : [URI](#uri---useruser_idcmdcontrol) - `/user/{user_id}?cmd=control` *(Authenticate `user_id`.  Verify password for user.  Failure will return `401 Unathorized`.)*
+    - **user\_password**          : [URI](#uri---useruser_idcmdset) - `/user/{user_id}?cmd=set` *(Changes the password for `user_id`.)*
     - **vcloud\_summary**         : [URI](#uri---vcloud) - `/vcloud` *(This target is TBD.)*
 - **Released In**: None
 
@@ -261,7 +262,8 @@ to body content keys.
         "task_purge": "/task?cmd=delete",
         "time_summary": "/time",
         "time_update": "/time?cmd=set",
-        "user_password": "/users/{user_id}?cmd=set",
+        "user_auth": "/user/{user_id}?cmd=control",
+        "user_password": "/user/{user_id}?cmd=set",
         "vcloud_summary": "/vcloud"
     },
     "status": {
@@ -2046,7 +2048,32 @@ Set UTC time.
 
 ---
 
-### URI - /users/{user\_id}?cmd=set
+### URI - /user/{user\_id}?cmd=control
+- **Target Id**: user_auth
+- **Command**: `control`
+- **Input**:
+    - **action**   : Action (authenticate)
+    - **password** : Password value to confirm
+- **Released In**: None
+
+#### Description
+Authenticate `user_id`.  Verify password for user.  Failure will return `401 Unathorized`.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "control",
+    "data": {
+        "action": "authenticate",
+        "password": "xxx"
+    }
+}
+```
+
+---
+
+### URI - /user/{user\_id}?cmd=set
 - **Target Id**: user_password
 - **Command**: `set`
 - **Input**:
@@ -2056,7 +2083,7 @@ Set UTC time.
 
 #### Description
 Changes the password for `user_id`.  If the **old\_password** field is present, then confirm it prior to
-changing to the new password.  Failure to confirm is a failure of the request.
+changing to the new password.  Failure to confirm will return `401 Unauthorized`.
 
 #### Example
 ```
