@@ -139,7 +139,7 @@
 | **sys**              |                                                 | [[X]](#uri---syscmdcontrol)                     |                                                 | [[X]](#uri---sys)                               |                                                 |
 | **task**             |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
 | **task.id**          |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
-| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timecmdset)                        |
+| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timeutccmdset)                     |
 | **user.admin**       |                                                 | [[X]](#uri---useruser\_idcmdcontrol)            |                                                 |                                                 | [[X]](#uri---useruser\_idcmdset)                |
 | **vcloud**           |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
 | **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
@@ -197,7 +197,7 @@
     - **task\_list**              : [URI](#uri---task) - `/task` *(Task list.)*
     - **task\_purge**             : [URI](#uri---taskcmddelete) - `/task?cmd=delete` *(Purge (collect garbage) tasks.)*
     - **time\_summary**           : [URI](#uri---time) - `/time` *(System time information.)*
-    - **time\_update**            : [URI](#uri---timecmdset) - `/time?cmd=set` *(Set UTC time.)*
+    - **time\_update**            : [URI](#uri---timeutccmdset) - `/time/utc?cmd=set` *(Set UTC time.)*
     - **user\_auth**              : [URI](#uri---useruser_idcmdcontrol) - `/user/{user_id}?cmd=control` *(Authenticate `user_id`.  Verify password for user.  Failure will return `401 Unathorized`.)*
     - **user\_password**          : [URI](#uri---useruser_idcmdset) - `/user/{user_id}?cmd=set` *(Changes the password for `user_id`.)*
     - **vcloud\_summary**         : [URI](#uri---vcloud) - `/vcloud` *(This target is TBD.)*
@@ -261,7 +261,7 @@ to body content keys.
         "task_list": "/task",
         "task_purge": "/task?cmd=delete",
         "time_summary": "/time",
-        "time_update": "/time?cmd=set",
+        "time_update": "/time/utc?cmd=set",
         "user_auth": "/user/{user_id}?cmd=control",
         "user_password": "/user/{user_id}?cmd=set",
         "vcloud_summary": "/vcloud"
@@ -2053,7 +2053,7 @@ System time information.
 
 ---
 
-### URI - /time?cmd=set
+### URI - /time/utc?cmd=set
 - **Target Id**: time_update
 - **Command**: `set`
 - **Input**:
