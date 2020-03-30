@@ -830,11 +830,21 @@ Supported filter query paramters are:
         - **ping\_count**   : Number of packets to send.
         - **ping\_timeout** : Ping timeout (secs).
 - **Output**:
-    - **log\_id** : Log id for the network diagnostics.
+    - **task\_data**   : 
+        - **exit\_code**      : Exit code from ping
+        - **msgs**            : Output (stdout and stderr) from ping
+        - **receive\_count**  : Number of packets received
+        - **transmit\_count** : Number of packets sent
+    - **task\_status** : 
+        - **code** : Final status code
+        - **msgs** : Final message list
 - **Released In**: None
 
 #### Description
 (**async**) Perform network diagnostics.
+
+As this is an asynchronous operation, the output shown below will be part of
+a `task_details` document.
 
 #### Example
 ```
@@ -844,7 +854,7 @@ Supported filter query paramters are:
     "data": {
         "ping": {
             "ip_addr": "192.168.254.2",
-            "ping_count": 5,
+            "ping_count": 2,
             "ping_timeout": 10
         }
     }
@@ -852,7 +862,25 @@ Supported filter query paramters are:
 # Output
 {
     "data": {
-        "log_id": "abcd1234"
+        "task_data": {
+            "exit_code": 0,
+            "msgs": [
+                "PING 192.168.254.2 (192.168.254.2) 56 data bytes",
+                "64 bytes from 192.168.254.2: seq=0 ttl=64 time=1.990 ms",
+                "64 bytes from 192.168.254.2: seq=1 ttl=64 time=1.033 ms",
+                "",
+                "--- 192.168.254.2 ping statistics ---",
+                "2 packets transmitted, 2 received, 0% packet loss"
+            ],
+            "receive_count": 2,
+            "transmit_count": 2
+        },
+        "task_status": {
+            "code": 0,
+            "msgs": [
+                "OK"
+            ]
+        }
     },
     "status": {
         "code": 0,
