@@ -114,11 +114,11 @@
 | **cntr.image.id**    |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
 | **cntr.service**     | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
 | **cntr.service.id**  |                                                 | [[X]](#uri---cntrserviceservice\_idcmdcontrol)  | [[X]](#uri---cntrserviceservice\_idcmddelete)   | [[X]](#uri---cntrserviceservice\_id)            |                                                 |
-| **diag.log**         |                                                 |                                                 |                                                 | [[X]](#uri---diaglogfilter)                     |                                                 |
+| **diag.log**         |                                                 |                                                 |                                                 | [[X]](#uri---diaglogfilter)                     | [[X]](#uri---diaglogcmdset)                     |
 | **diag.net**         |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
 | **diag.power**       |                                                 |                                                 |                                                 | [[X]](#uri---diagpower)                         |                                                 |
 | **diag.resource**    |                                                 |                                                 |                                                 | [[X]](#uri---diagresource)                      |                                                 |
-| **diag.resource.id** |                                                 |                                                 |                                                 | [[X]](#uri---diagresourceresource\_id)          |                                                 |
+| **diag.resource.id** |                                                 |                                                 |                                                 | **X: diag\_resource\_details**                  |                                                 |
 | **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 | **diag.snapshot**    |                                                 |                                                 |                                                 | [[X]](#uri---diagsnapshot)                      |                                                 |
 | **diag.thermal**     |                                                 |                                                 |                                                 | [[X]](#uri---diagthermal)                       |                                                 |
@@ -165,12 +165,12 @@
     - **cntr\_service\_list**     : [URI](#uri---cntrservice) - `/cntr/service` *(Container summary.)*
     - **cntr\_service\_purge**    : [URI](#uri---cntrservicecmddelete) - `/cntr/service?cmd=delete` *(Purge (collect garbage) container services.)*
     - **cntr\_summary**           : [URI](#uri---cntr) - `/cntr` *(Container summary.)*
+    - **diag\_log\_level**        : [URI](#uri---diaglogcmdset) - `/diag/log?cmd=set` *(Set persistent journal logging level.)*
     - **diag\_log\_list**         : [URI](#uri---diaglogfilter) - `/diag/log?{filter}` *(Diagnostic log list.)*
     - **diag\_net\_control**      : [URI](#uri---diagnetcmdcontrol) - `/diag/net?cmd=control` *((**async**) Perform network diagnostics.)*
     - **diag\_power\_details**    : [URI](#uri---diagpower) - `/diag/power` *(Report power diagnostics.)*
-    - **diag\_resource\_details** : [URI](#uri---diagresourceresource_id) - `/diag/resource/{resource_id}` *(Details diagnostics for system resources.)*
-    - **diag\_resource\_list**    : [URI](#uri---diagresource) - `/diag/resource` *(Resource diagnostic list.)*
-    - **diag\_snapshot**          : [URI](#uri---diagsnapshot) - `/diag/snapshot` *((**async**) Dynamically take a snapshot of diagnostics and metrics.)*
+    - **diag\_resource\_list**    : [URI](#uri---diagresource) - `/diag/resource` *(List of resources.)*
+    - **diag\_snapshot**          : [URI](#uri---diagsnapshot) - `/diag/snapshot` *(Dynamically take a snapshot of diagnostics and metrics.)*
     - **diag\_thermal\_details**  : [URI](#uri---diagthermal) - `/diag/thermal` *(Report thermal diagnostics.)*
     - **eth\_interface\_details** : [URI](#uri---etheth_interface_id) - `/eth/{eth_interface_id}` *(Ethernet interface details for `eth_interface_id`.)*
     - **eth\_interface\_list**    : [URI](#uri---eth) - `/eth` *(Ethernet interface list.)*
@@ -229,10 +229,10 @@ to body content keys.
         "cntr_service_list": "/cntr/service",
         "cntr_service_purge": "/cntr/service?cmd=delete",
         "cntr_summary": "/cntr",
+        "diag_log_level": "/diag/log?cmd=set",
         "diag_log_list": "/diag/log?{filter}",
         "diag_net_control": "/diag/net?cmd=control",
         "diag_power_details": "/diag/power",
-        "diag_resource_details": "/diag/resource/{resource_id}",
         "diag_resource_list": "/diag/resource",
         "diag_snapshot": "/diag/snapshot",
         "diag_thermal_details": "/diag/thermal",
@@ -765,6 +765,33 @@ Services and images will be purged according to the `grace_period`.
 
 ---
 
+### URI - /diag/log?cmd=set
+- **Target Id**: diag_log_level
+- **Command**: `set`
+- **Input**:
+    - **level** : New logging level (`warning`|`notice`|`info`|`debug`).
+- **Released In**: None
+
+#### Description
+Set persistent journal logging level.
+
+This target changes the persistent journal logging level.  Valid values for the `level`
+attribute are (increasing in verbosity): `warning`, `notice`, `info`, `debug`.  Changing
+the logging level will change the verbosity of messages written to the journal.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "set",
+    "data": {
+        "level": "info"
+    }
+}
+```
+
+---
+
 ### URI - /diag/log?{filter}
 - **Target Id**: diag_log_list
 - **Command**: `get`
@@ -961,13 +988,42 @@ Report power diagnostics.
 - **Command**: `get`
 - **Output**:
     - ***Array***:
-        - **resource\_class** : Resource class.
-        - **resource\_id**    : Resource identifier.
-        - **resource\_name**  : Resource name.
+        - **measurement**    : Measurement info.
+        - **resource\_id**   : Resource identifier.
+        - **resource\_type** : Resource type.
 - **Released In**: None
 
 #### Description
-Resource diagnostic list.
+List of resources. For each resource type and ID, a measurement is provided.
+The list below shows the supported resource types, followed by a list of supported IDs.
+- "cpu" : "minute", "hour", "since\_boot"
+- "memory" : "total", "free"
+- "filesystem" : "/", "/tmp", "/var/volatile"
+For each resource and ID, there is a "measurement" object that contains a "units"
+attribute, and one or more attributes containing the measurement value. Examples 
+for each resource type are as follows:
+- "cpu"
+  ```
+  "measurement": {
+      "units": "percent",
+      "value": 2.3
+  }
+  ```
+- "memory"
+  ```
+  "measurement": {
+      "units": "kB",
+      "value": 3443776
+  }
+  ```
+- "filesystem"
+  ```
+  "measurement": {
+      "free": 1712211,
+      "total": 1721888,
+      "units": "kB"
+  }
+  ```
 
 #### Example
 ```
@@ -975,54 +1031,9 @@ Resource diagnostic list.
 {
     "data": [
         {
-            "resource_class": "filesystem",
-            "resource_id": "storage",
-            "resource_name": "root filesystem"
-        }
-    ],
-    "status": {
-        "code": 0,
-        "msgs": [
-            "OK"
-        ]
-    }
-}
-```
-
----
-
-### URI - /diag/resource/{resource\_id}
-- **Target Id**: diag_resource_details
-- **Command**: `get`
-- **Output**:
-    - ***Array***:
-        - **ext**             : 
-            - **val** : Resource details based on class.
-        - **resource\_class** : Resource class.
-        - **resource\_id**    : Resource identifier.
-        - **resource\_name**  : Resource name.
-- **Released In**: None
-
-#### Description
-Details diagnostics for system resources.
-
-Possible resource classes:
-- `cpu`
-- `filesystem`
-- `memory`
-
-#### Example
-```
-# Output
-{
-    "data": [
-        {
-            "ext": {
-                "val": ""
-            },
-            "resource_class": "filesystem",
-            "resource_id": "storage",
-            "resource_name": "root filesystem"
+            "measurement": "See description above",
+            "resource_id": "/tmp",
+            "resource_type": "filesystem"
         }
     ],
     "status": {
@@ -1040,30 +1051,67 @@ Possible resource classes:
 - **Target Id**: diag_snapshot
 - **Command**: `get`
 - **Output**:
-    - **log\_id** : Log id of the snapshot tgz archive that is created.
+    - **lines** : Lines from the snapshot log.
 - **Released In**: None
 
 #### Description
-(**async**) Dynamically take a snapshot of diagnostics and metrics.
+Dynamically take a snapshot of diagnostics and metrics.
         
-Starts a task to gather diagnostic information into a single snapshot log.  The end result of
-the task will be a tgz archive file suitable for engineering analysis.
-
-When the snapshot task completes, the diagnostic log file at `log_id` will be populated.
+Gathers diagnostic information into a single snapshot log.  This operation
+may take up to 10 seconds to complete.   Output is written into the data.lines
+array.
 
 #### Example
 ```
 # Output
 {
     "data": {
-        "log_id": "abcd1234"
+        "lines": [
+            "Tue Apr 28 16:50:01 UTC 2020",
+            " 16:50:01 up  1:28,  load average: 0.44, 0.31, 0.30",
+            "",
+            "----------------------------------------",
+            "--- cat /etc/gsf/gsf_version.sh",
+            "# Root File System Build Info",
+            "RFS_VERSION=\"2.1.1.3\"",
+            "RFS_COMMIT=\"22cf10a\"",
+            "RFS_BUILD_TIME=\"20200428-111810\"",
+            "RFS_GIT_BRANCH=\"dev\"",
+            "RFS_GIT_REPO_URL=\"git@ghe.int.vertivco.com:SaSS-RDU/rdu-build.git\"",
+            "",
+            "----------------------------------------",
+            "--- df",
+            "Filesystem           1K-blocks      Used Available Use% Mounted on",
+            "/dev/root             12147376   1000440  10523220   9% /",
+            "devtmpfs               1722724         0   1722724   0% /dev",
+            "tmpfs                  1723424         0   1723424   0% /dev/shm",
+            "tmpfs                  1723424      1176   1722248   0% /run",
+            "tmpfs                  1723424         0   1723424   0% /sys/fs/cgroup",
+            "tmpfs                  1723424         0   1723424   0% /var/volatile",
+            "tmpfs                  1723424        12   1723412   0% /tmp",
+            "/dev/sda1                65390     25094     40296  38% /boot",
+            "/dev/sda4             12147376   1440800  10082860  13% /mnt/dormant",
+            "overlay               12147376   1000440  10523220   9% /var/lib/docker/overlay2/be88bb126e2492ab6dc8427c5cca7625143e4856a8befd4642c5ae80a826bf2a/merged",
+            "overlay               12147376   1000440  10523220   9% /var/lib/docker/overlay2/c2c4199f80979a544f7f83512b44e004dfba0b4bc0218de52c6b7ccce7221ff1/merged",
+            "overlay               12147376   1000440  10523220   9% /var/lib/docker/overlay2/af23b07c935923a7590d73b790142085eee6d146dd9324a8b7ffc874a1acd1a6/merged",
+            "shm                      65536         8     65528   0% /var/lib/docker/containers/e2fa363f01dc3df021f6f90ae6765b6ddfc70ab9d1357071d4ffd25c6be9ddfb/mounts/shm",
+            "shm                      65536         8     65528   0% /var/lib/docker/containers/3ce23b7358d5b698f000c0a3f89b01455b3b874cab2d70f7ceb0bc1e45aa84f7/mounts/shm",
+            "shm                      65536         8     65528   0% /var/lib/docker/containers/cde4d1cab2ed648c510896acb4af912063a2faec21c5c4920cb73e3f320bd0e2/mounts/shm",
+            "",
+            "----------------------------------------",
+            "--- ps aux",
+            "PID   USER     TIME   COMMAND",
+            "    1 root       0:01 {systemd} /sbin/init",
+            "    2 root       0:00 [kthreadd]",
+            "    3 root       0:00 [ksoftirqd/0]",
+            "..."
+        ]
     },
     "status": {
         "code": 0,
         "msgs": [
-            "In progress"
-        ],
-        "task_id": "1234"
+            "OK"
+        ]
     }
 }
 ```
