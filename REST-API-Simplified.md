@@ -289,11 +289,22 @@ to body content keys.
     - **services** : 
         - ***Array***:
             - **service\_id**    : Service id.
-            - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
+            - **service\_state** : Service state `run`|`stop`|`stop-app`.
 - **Released In**: None
 
 #### Description
 Container summary.
+
+Service states:
+
+- `run`: Service is running.
+- `stop`: Service is stopped either because it was stopped via this API, or
+  it has failed. In the case of a service failure, a restart might be attempted
+  after some wait time - this is based on the `restart-mode` chosen when the
+  service was added.
+- `stop-app`: Service is stopped and will not restart due to the presence of a
+  `do_not_restart.json` health file. This file will be deleted if a service
+  command operation of `start` is done via this API.
 
 #### Example
 ```
@@ -465,7 +476,7 @@ Orphaned images will be purged according to the `grace_period`.
     - ***Array***:
         - **image\_id**      : Image id.
         - **service\_id**    : Service id.
-        - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
+        - **service\_state** : Service state `run`|`stop`|`stop-app`.
 - **Released In**: None
 
 #### Description
@@ -513,7 +524,7 @@ Container summary.
             - **src\_intf**   : Source network interface.
             - **src\_port**   : Source network port.
     - **service\_id**    : Service id.
-    - **service\_state** : Service state `run`|`stop`|`enabled`|`disabled`.
+    - **service\_state** : Service state `run`|`stop`|`stop-app`.
     - **start\_time**    : Start time.
     - **stop\_time**     : Stop time.
 - **Released In**: None
@@ -565,7 +576,7 @@ Container service details.
 - **Target Id**: cntr_service_control
 - **Command**: `control`
 - **Input**:
-    - **action** : `start`|`stop`|`enable`|`disable`
+    - **action** : `start`|`stop`
 - **Released In**: None
 
 #### Description
@@ -592,7 +603,7 @@ Control a container service.
 #### Description
 Delete a container service.
 
-Running services will be stopped.  Enabled services will be disabled.
+Running services will be stopped.
 
 ---
 
@@ -600,39 +611,38 @@ Running services will be stopped.  Enabled services will be disabled.
 - **Target Id**: cntr_service_deploy
 - **Command**: `add`
 - **Input**:
-    - **bind\_net\_redis**       : Bind to net-redis service for secure tunnel.
-    - **envs**                   : 
+    - **bind\_net\_redis**    : Bind to net-redis service for secure tunnel.
+    - **envs**                : 
         - ***Array***:
             - **name**  : Environment var name
             - **value** : Environemnt var value
-    - **force\_add**             : Force deployment.
+    - **force\_add**          : Force deployment.
                                 Take action if another service with the same `service_class` already exists.
                                 If `true`, then remove the previous service and deploy this one.
                                 If `false`, then fail this deployment.
-    - **host\_network**          : Host network enabled.
-    - **image\_id**              : Image id
-    - **mounts**                 : 
+    - **host\_network**       : Host network enabled.
+    - **image\_id**           : Image id
+    - **mounts**              : 
         - ***Array***:
             - **dst\_path**   : Mount destination path.
             - **member\_idx** : See [member\_idx](#point---member_idx)
             - **mount\_type** : Mount type.
             - **src\_path**   : Mount source path.
-    - **networks**               : 
+    - **networks**            : 
         - ***Array***:
             - **dst\_port**   : Destination port.
             - **member\_idx** : See [member\_idx](#point---member_idx)
             - **port\_type**  : Network port type `udp`|`tcp`.
             - **src\_intf**   : Source network interface.
             - **src\_port**   : Source network port.
-    - **restart\_mode**          : Action to take on container service abnormal exit `restart`|`reboot`|`ignore`.
-    - **restart\_wait**          : Time to wait after abnormal exit before restarting (secs).
-    - **service\_enable\_state** : Service enable state `enabled`|`disabled`.
-    - **service\_exec**          : 
+    - **restart\_mode**       : Action to take on container service abnormal exit `restart`|`reboot`|`ignore`.
+    - **restart\_wait**       : Time to wait after abnormal exit before restarting (secs).
+    - **service\_exec**       : 
         - **args**    : 
             - ***Array***: Command argument
         - **command** : Start command
-    - **service\_id**            : Image id
-    - **service\_run\_state**    : Service run state `run`|`stop`.
+    - **service\_id**         : Image id
+    - **service\_run\_state** : Service run state `run`|`stop`.
 - **Released In**: None
 
 #### Description
@@ -673,7 +683,6 @@ Container service deploy.
         ],
         "restart_mode": "restart",
         "restart_wait": 30,
-        "service_enable_state": "enabled",
         "service_exec": {
             "args": [
                 "myapp.dll"
