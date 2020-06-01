@@ -50,11 +50,19 @@
 ---
 ## API Basics
 - Loosely modeled after the [Geist API](http://releases.geist.local/documentation/api/latest/geist_api_public.html)
-- Some requests, typically those of long duration, are processed asynchronously. The initial HTTP response
-  will be `202 Accepted`, and a task ID will be provided to allow monitoring of the task using the
-  [/task](#uri---task) resource. Only a few requests are expected to be processed asynchronously, however
-  it is desirable for the client to be able to dynamically handle a 202 status code in for most resources.
-  Obvious exceptions include the [/task](#uri---task) resource.
+- Synchronous/asynchronous request processing:
+  + Some requests, typically those of long duration, are processed asynchronously. The initial HTTP response
+    will be `202 Accepted`, and a task ID will be provided to allow monitoring of the task using the
+    [/task](#uri---task) resource. Only a few requests are expected to be processed asynchronously.
+  + Most resources are always processed either synchronously or asynchronously. However, a few have been enhanced
+    to support either processing method. For these cases, the client can choose the processing method using a query
+    parameter `async`. It can be set to `yes` or `no` (alternatively `true` or `false`). If this parameter is not
+    specified, the processing method defaults in such a way to maintain backward compatibility.
+  + If the `query` parameter is used for a resource that only supports one processing method, the query parameter
+    must match the supported method or the request will fail.
+  + In the resource descriptions provided later in this document, the supported sync/async method(s) is
+    provided at the start of the description, if it is not strictly async. In the case of resources that support
+    both methods, the default is assumed for any output document, and in examples.
 - Virtually every request is a POST
     - We may eventually translate a GET request into an implied body with nothing but: `"cmd" : "get"`.
     - POST input body
@@ -153,13 +161,13 @@
 - **Output**:
     - **cntr\_control**           : [URI](#uri---cntrcmdcontrol) - `/cntr?cmd=control` *(Global actions on cntr objects.)*
     - **cntr\_image\_delete**     : [URI](#uri---cntrimageimage_idcmddelete) - `/cntr/image/{image_id}?cmd=delete` *(Delete a container image if not in use.)*
-    - **cntr\_image\_deploy**     : [URI](#uri---cntrimagecmdadd) - `/cntr/image?cmd=add` *(Deploy a container image.)*
+    - **cntr\_image\_deploy**     : [URI](#uri---cntrimagecmdadd) - `/cntr/image?cmd=add` *((**async**) Deploy a container image.)*
     - **cntr\_image\_details**    : [URI](#uri---cntrimageimage_id) - `/cntr/image/{image_id}` *(Container image details.)*
     - **cntr\_image\_list**       : [URI](#uri---cntrimage) - `/cntr/image` *(Container image list.)*
     - **cntr\_image\_purge**      : [URI](#uri---cntrimagecmddelete) - `/cntr/image?cmd=delete` *(Purge (collect garbage) container images.)*
     - **cntr\_purge**             : [URI](#uri---cntrcmddelete) - `/cntr?cmd=delete` *(Purge (collect garbage) container services and images.)*
-    - **cntr\_service\_control**  : [URI](#uri---cntrserviceservice_idcmdcontrol) - `/cntr/service/{service_id}?cmd=control` *(Control a container service.)*
-    - **cntr\_service\_delete**   : [URI](#uri---cntrserviceservice_idcmddelete) - `/cntr/service/{service_id}?cmd=delete` *(Delete a container service.)*
+    - **cntr\_service\_control**  : [URI](#uri---cntrserviceservice_idcmdcontrol) - `/cntr/service/{service_id}?cmd=control` *((**default sync, optiontally async**) Control a container service.)*
+    - **cntr\_service\_delete**   : [URI](#uri---cntrserviceservice_idcmddelete) - `/cntr/service/{service_id}?cmd=delete` *((**default sync, optiontally async**) Delete a container service.)*
     - **cntr\_service\_deploy**   : [URI](#uri---cntrservicecmdadd) - `/cntr/service?cmd=add` *(Container service deploy.)*
     - **cntr\_service\_details**  : [URI](#uri---cntrserviceservice_id) - `/cntr/service/{service_id}` *(Container service details.)*
     - **cntr\_service\_list**     : [URI](#uri---cntrservice) - `/cntr/service` *(Container summary.)*
@@ -190,7 +198,7 @@
     - **sw\_rfs\_details**        : [URI](#uri---swrfs) - `/sw/rfs` *(Root file system software details.)*
     - **sw\_rfs\_update**         : [URI](#uri---swrfscmdset) - `/sw/rfs?cmd=set` *((**async**) Root file system software update.)*
     - **sys\_details**            : [URI](#uri---sys) - `/sys` *(System details.)*
-    - **sys\_shutdown**           : [URI](#uri---syscmdcontrol) - `/sys?cmd=control` *(Shut the system down.)*
+    - **sys\_shutdown**           : [URI](#uri---syscmdcontrol) - `/sys?cmd=control` *((**async**) Shut the system down.)*
     - **task\_control**           : [URI](#uri---tasktask_idcmdcontrol) - `/task/{task_id}?cmd=control` *(Task cancel/kill.)*
     - **task\_delete**            : [URI](#uri---tasktask_idcmddelete) - `/task/{task_id}?cmd=delete` *(Mark a task for delete.)*
     - **task\_details**           : [URI](#uri---tasktask_id) - `/task/{task_id}`
@@ -423,10 +431,11 @@ Delete a container image if not in use.
     - **image\_sha256** : SHA256 sum of the image file.
     - **image\_size**   : Size of image file in bytes.
     - **image\_url**    : URL to fetch image
+- **Output**:
 - **Released In**: None
 
 #### Description
-Deploy a container image.
+(**async**) Deploy a container image.
 
 #### Example
 ```
@@ -438,6 +447,16 @@ Deploy a container image.
         "image_sha256": "a9b730edf4a80c4677a10d23625a7c4ce851fb01b2f5981a8d784c77879c4e46",
         "image_size": 236233844,
         "image_url": "http://192.168.254.88/cimg/rdumanagerservices.202002031.aci"
+    }
+}
+# Output
+{
+    "status": {
+        "code": 0,
+        "msgs": [
+            "In progress"
+        ],
+        "task_id": "1234"
     }
 }
 ```
@@ -580,7 +599,7 @@ Container service details.
 - **Released In**: None
 
 #### Description
-Control a container service.
+(**default sync, optiontally async**) Control a container service.
 
 #### Example
 ```
@@ -601,7 +620,7 @@ Control a container service.
 - **Released In**: None
 
 #### Description
-Delete a container service.
+(**default sync, optiontally async**) Delete a container service.
 
 Running services will be stopped.
 
@@ -1915,10 +1934,11 @@ System details.
 - **Command**: `control`
 - **Input**:
     - **action** : `reboot`|`halt`|`to-dormant`|`factory-reset`
+- **Output**:
 - **Released In**: None
 
 #### Description
-Shut the system down.
+(**async**) Shut the system down.
 
 Performs a shutdown based on **action**:
 
@@ -1936,6 +1956,16 @@ Default is `reboot`.
     "cmd": "control",
     "data": {
         "action": "reboot"
+    }
+}
+# Output
+{
+    "status": {
+        "code": 0,
+        "msgs": [
+            "In progress"
+        ],
+        "task_id": "1234"
     }
 }
 ```
