@@ -44,8 +44,10 @@
         - Not needed for machine-to-machine communication, more internal from the web service
     - [/sec/cert](#uri---seccert)
         - Security certificate management
-        - Should handle TLS certificates and machine-to-machine (JWT) certificates
-        - Save this for last since it might be complex
+        - Handles access keys and certificates
+    - [/sec/jwt](#uri---secjwt)
+        - Java web token (JWT) key management
+        - Handles machine-to-machine token validation keys
     
 ---
 ## API Basics
@@ -115,42 +117,43 @@
 ---
 ## Actions
 
-| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
-|----------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|
-| **cntr**             |                                                 | [[X]](#uri---cntrcmdcontrol)                    | [[X]](#uri---cntrcmddelete)                     | [[X]](#uri---cntr)                              |                                                 |
-| **cntr.image**       | [[X]](#uri---cntrimagecmdadd)                   |                                                 | [[X]](#uri---cntrimagecmddelete)                | [[X]](#uri---cntrimage)                         |                                                 |
-| **cntr.image.id**    |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
-| **cntr.service**     | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
-| **cntr.service.id**  |                                                 | [[X]](#uri---cntrserviceservice\_idcmdcontrol)  | [[X]](#uri---cntrserviceservice\_idcmddelete)   | [[X]](#uri---cntrserviceservice\_id)            |                                                 |
-| **diag.log**         |                                                 |                                                 |                                                 | [[X]](#uri---diaglogfilter)                     | [[X]](#uri---diaglogcmdset)                     |
-| **diag.net**         |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
-| **diag.power**       |                                                 |                                                 |                                                 | [[X]](#uri---diagpower)                         |                                                 |
-| **diag.resource**    |                                                 |                                                 |                                                 | [[X]](#uri---diagresource)                      |                                                 |
-| **diag.resource.id** |                                                 |                                                 |                                                 | **X: diag\_resource\_details**                  |                                                 |
-| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
-| **diag.snapshot**    |                                                 |                                                 |                                                 | [[X]](#uri---diagsnapshot)                      |                                                 |
-| **diag.thermal**     |                                                 |                                                 |                                                 | [[X]](#uri---diagthermal)                       |                                                 |
-| **eth**              |                                                 |                                                 |                                                 | [[X]](#uri---eth)                               |                                                 |
-| **eth.id**           |                                                 |                                                 |                                                 | [[X]](#uri---etheth\_interface\_id)             | [[X]](#uri---etheth\_interface\_idcmdset)       |
-| **net**              |                                                 |                                                 |                                                 | [[X]](#uri---net)                               |                                                 |
-| **net.https**        |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
-| **net.id**           |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
-| **net.ntp**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
-| **net.redis**        |                                                 |                                                 |                                                 | [[X]](#uri---netredis)                          | [[X]](#uri---netrediscmdset)                    |
-| **net.ssdp**         |                                                 |                                                 |                                                 | [[X]](#uri---netssdp)                           | [[X]](#uri---netssdpcmdset)                     |
-| **net.ssh**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
-| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
-| **sec.cert**         |                                                 |                                                 |                                                 | [[X]](#uri---seccert)                           |                                                 |
-| **sec.cert.id**      |                                                 |                                                 | [[X]](#uri---seccertcert\_idcmddelete)          | [[X]](#uri---seccertcert\_id)                   | [[X]](#uri---seccertcert\_idcmdset)             |
-| **sw**               |                                                 |                                                 |                                                 | [[X]](#uri---sw)                                |                                                 |
-| **sw.rfs**           |                                                 |                                                 |                                                 | [[X]](#uri---swrfs)                             | [[X]](#uri---swrfscmdset)                       |
-| **sys**              |                                                 | [[X]](#uri---syscmdcontrol)                     |                                                 | [[X]](#uri---sys)                               |                                                 |
-| **task**             |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
-| **task.id**          |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
-| **time**             |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timeutccmdset)                     |
-| **user.admin**       |                                                 | [[X]](#uri---useruser\_idcmdcontrol)            |                                                 |                                                 | [[X]](#uri---useruser\_idcmdset)                |
-| **vcloud**           |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
-| **-**                | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+| **-**               | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+|---------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|-------------------------------------------------|
+| **cntr**            |                                                 | [[X]](#uri---cntrcmdcontrol)                    | [[X]](#uri---cntrcmddelete)                     | [[X]](#uri---cntr)                              |                                                 |
+| **cntr.image**      | [[X]](#uri---cntrimagecmdadd)                   |                                                 | [[X]](#uri---cntrimagecmddelete)                | [[X]](#uri---cntrimage)                         |                                                 |
+| **cntr.image.id**   |                                                 |                                                 | [[X]](#uri---cntrimageimage\_idcmddelete)       | [[X]](#uri---cntrimageimage\_id)                |                                                 |
+| **cntr.service**    | [[X]](#uri---cntrservicecmdadd)                 |                                                 | [[X]](#uri---cntrservicecmddelete)              | [[X]](#uri---cntrservice)                       |                                                 |
+| **cntr.service.id** |                                                 | [[X]](#uri---cntrserviceservice\_idcmdcontrol)  | [[X]](#uri---cntrserviceservice\_idcmddelete)   | [[X]](#uri---cntrserviceservice\_id)            |                                                 |
+| **diag.log**        |                                                 |                                                 |                                                 | [[X]](#uri---diaglogfilter)                     | [[X]](#uri---diaglogcmdset)                     |
+| **diag.net**        |                                                 | [[X]](#uri---diagnetcmdcontrol)                 |                                                 |                                                 |                                                 |
+| **diag.power**      |                                                 |                                                 |                                                 | [[X]](#uri---diagpower)                         |                                                 |
+| **diag.resource**   |                                                 |                                                 |                                                 | [[X]](#uri---diagresource)                      |                                                 |
+| **diag.snapshot**   |                                                 |                                                 |                                                 | [[X]](#uri---diagsnapshot)                      |                                                 |
+| **diag.thermal**    |                                                 |                                                 |                                                 | [[X]](#uri---diagthermal)                       |                                                 |
+| **-**               | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+| **eth**             |                                                 |                                                 |                                                 | [[X]](#uri---eth)                               |                                                 |
+| **eth.id**          |                                                 |                                                 |                                                 | [[X]](#uri---etheth\_interface\_id)             | [[X]](#uri---etheth\_interface\_idcmdset)       |
+| **net**             |                                                 |                                                 |                                                 | [[X]](#uri---net)                               |                                                 |
+| **net.https**       |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.id**          |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.ntp**         |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **net.redis**       |                                                 |                                                 |                                                 | [[X]](#uri---netredis)                          | [[X]](#uri---netrediscmdset)                    |
+| **net.ssdp**        |                                                 |                                                 |                                                 | [[X]](#uri---netssdp)                           | [[X]](#uri---netssdpcmdset)                     |
+| **net.ssh**         |                                                 |                                                 |                                                 | [[X]](#uri---netnet\_service\_id)               | [[X]](#uri---netnet\_service\_idcmdset)         |
+| **sec.cert.srv**    |                                                 |                                                 | [[X]](#uri---seccertsrvcmddelete)               | [[X]](#uri---seccertsrv)                        | [[X]](#uri---seccertsrvcmdset)                  |
+| **-**               | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
+| **sec.jwt.cfg**     |                                                 |                                                 |                                                 | [[X]](#uri---secjwtcfg)                         | [[X]](#uri---secjwtcfgcmdset)                   |
+| **sec.jwt.id**      |                                                 |                                                 | [[X]](#uri---secjwtkeykey\_idcmddelete)         | [[X]](#uri---secjwtkeykey\_id)                  | [[X]](#uri---secjwtkeykey\_idcmdset)            |
+| **sec.jwt.list**    |                                                 |                                                 |                                                 | [[X]](#uri---secjwtkey)                         |                                                 |
+| **sw**              |                                                 |                                                 |                                                 | [[X]](#uri---sw)                                |                                                 |
+| **sw.rfs**          |                                                 |                                                 |                                                 | [[X]](#uri---swrfs)                             | [[X]](#uri---swrfscmdset)                       |
+| **sys**             |                                                 | [[X]](#uri---syscmdcontrol)                     |                                                 | [[X]](#uri---sys)                               |                                                 |
+| **task**            |                                                 |                                                 | [[X]](#uri---taskcmddelete)                     | [[X]](#uri---task)                              |                                                 |
+| **task.id**         |                                                 | [[X]](#uri---tasktask\_idcmdcontrol)            | [[X]](#uri---tasktask\_idcmddelete)             | [[X]](#uri---tasktask\_id)                      |                                                 |
+| **time**            |                                                 |                                                 |                                                 | [[X]](#uri---time)                              | [[X]](#uri---timeutccmdset)                     |
+| **user.admin**      |                                                 | [[X]](#uri---useruser\_idcmdcontrol)            |                                                 |                                                 | [[X]](#uri---useruser\_idcmdset)                |
+| **vcloud**          |                                                 |                                                 |                                                 | [[X]](#uri---vcloud)                            |                                                 |
+| **-**               | **add**                                         | **control**                                     | **delete**                                      | **get**                                         | **set**                                         |
 
 
 ---
@@ -190,10 +193,15 @@
     - **net\_ssdp\_details**      : [URI](#uri---netssdp) - `/net/ssdp` *(SSDP service public details.)*
     - **net\_ssdp\_update**       : [URI](#uri---netssdpcmdset) - `/net/ssdp?cmd=set` *(Update SSDP service configuration.)*
     - **net\_summary**            : [URI](#uri---net) - `/net` *(Network service list.)*
-    - **sec\_cert\_delete**       : [URI](#uri---seccertcert_idcmddelete) - `/sec/cert/{cert_id}?cmd=delete` *(TBD)*
-    - **sec\_cert\_details**      : [URI](#uri---seccertcert_id) - `/sec/cert/{cert_id}` *(TBD)*
-    - **sec\_cert\_list**         : [URI](#uri---seccert) - `/sec/cert` *(TBD)*
-    - **sec\_cert\_update**       : [URI](#uri---seccertcert_idcmdset) - `/sec/cert/{cert_id}?cmd=set` *(TBD)*
+    - **sec\_cert\_srv\_delete**  : [URI](#uri---seccertsrvcmddelete) - `/sec/cert/srv?cmd=delete` *(Delete server certificate, reset to factory default.)*
+    - **sec\_cert\_srv\_details** : [URI](#uri---seccertsrv) - `/sec/cert/srv` *(Return the content (PEM) of the web server TLS/SSL certificate.)*
+    - **sec\_cert\_srv\_update**  : [URI](#uri---seccertsrvcmdset) - `/sec/cert/srv?cmd=set` *(Update the web server TLS/SSL certificate.)*
+    - **sec\_jwt\_cfg\_details**  : [URI](#uri---secjwtcfg) - `/sec/jwt/cfg` *(Return JWT subsystem configuration.)*
+    - **sec\_jwt\_cfg\_update**   : [URI](#uri---secjwtcfgcmdset) - `/sec/jwt/cfg?cmd=set` *(Update JWT subsystem configuration.)*
+    - **sec\_jwt\_delete**        : [URI](#uri---secjwtkeykey_idcmddelete) - `/sec/jwt/key/{key_id}?cmd=delete` *(Delete JWT key. Factory keys cannot be deleted.)*
+    - **sec\_jwt\_details**       : [URI](#uri---secjwtkeykey_id) - `/sec/jwt/key/{key_id}` *(Show JWT key details.)*
+    - **sec\_jwt\_list**          : [URI](#uri---secjwtkey) - `/sec/jwt/key` *(List installed JWT keys.)*
+    - **sec\_jwt\_update**        : [URI](#uri---secjwtkeykey_idcmdset) - `/sec/jwt/key/{key_id}?cmd=set` *(Add/update JWT key.  Note that factory keys cannot be added/updated.)*
     - **sw\_list**                : [URI](#uri---sw) - `/sw` *(List software components.)*
     - **sw\_rfs\_details**        : [URI](#uri---swrfs) - `/sw/rfs` *(Root file system software details.)*
     - **sw\_rfs\_update**         : [URI](#uri---swrfscmdset) - `/sw/rfs?cmd=set` *((**async**) Root file system software update.)*
@@ -209,8 +217,6 @@
     - **user\_auth**              : [URI](#uri---useruser_idcmdcontrol) - `/user/{user_id}?cmd=control` *(Authenticate `user_id`.  Verify password for user.  Failure will return `401 Unathorized`.)*
     - **user\_password**          : [URI](#uri---useruser_idcmdset) - `/user/{user_id}?cmd=set` *(Changes the password for `user_id`.)*
     - **vcloud\_summary**         : [URI](#uri---vcloud) - `/vcloud` *(This target is TBD.)*
-- **Released In**: None
-
 #### Description
 The root API entry point provides a *table of contents* for the rest of the API.  Retrieving this
 target will provide a list of identifiers to their relative location within the API.  A location
@@ -254,10 +260,15 @@ to body content keys.
         "net_ssdp_details": "/net/ssdp",
         "net_ssdp_update": "/net/ssdp?cmd=set",
         "net_summary": "/net",
-        "sec_cert_delete": "/sec/cert/{cert_id}?cmd=delete",
-        "sec_cert_details": "/sec/cert/{cert_id}",
-        "sec_cert_list": "/sec/cert",
-        "sec_cert_update": "/sec/cert/{cert_id}?cmd=set",
+        "sec_cert_srv_delete": "/sec/cert/srv?cmd=delete",
+        "sec_cert_srv_details": "/sec/cert/srv",
+        "sec_cert_srv_update": "/sec/cert/srv?cmd=set",
+        "sec_jwt_cfg_details": "/sec/jwt/cfg",
+        "sec_jwt_cfg_update": "/sec/jwt/cfg?cmd=set",
+        "sec_jwt_delete": "/sec/jwt/key/{key_id}?cmd=delete",
+        "sec_jwt_details": "/sec/jwt/key/{key_id}",
+        "sec_jwt_list": "/sec/jwt/key",
+        "sec_jwt_update": "/sec/jwt/key/{key_id}?cmd=set",
         "sw_list": "/sw",
         "sw_rfs_details": "/sw/rfs",
         "sw_rfs_update": "/sw/rfs?cmd=set",
@@ -298,8 +309,6 @@ to body content keys.
         - ***Array***:
             - **service\_id**    : Service id.
             - **service\_state** : Service state `run`|`stop`|`stop-app`.
-- **Released In**: None
-
 #### Description
 Container summary.
 
@@ -351,8 +360,6 @@ Service states:
     - ***Array***:
         - **image\_id**    : Image id.
         - **image\_state** : Image state `used`|`orphan`
-- **Released In**: None
-
 #### Description
 Container image list.
 
@@ -386,8 +393,6 @@ Container image list.
     - **image\_sha256** : SHA256 sum of the image file.
     - **image\_state**  : Image state `used`|`orphan`
     - **image\_url**    : URL to fetch image
-- **Released In**: None
-
 #### Description
 Container image details.
 
@@ -416,8 +421,6 @@ Container image details.
 ### URI - /cntr/image/{image\_id}?cmd=delete
 - **Target Id**: cntr_image_delete
 - **Command**: `delete`
-- **Released In**: None
-
 #### Description
 Delete a container image if not in use.
 
@@ -432,8 +435,6 @@ Delete a container image if not in use.
     - **image\_size**   : Size of image file in bytes.
     - **image\_url**    : URL to fetch image
 - **Output**:
-- **Released In**: None
-
 #### Description
 (**async**) Deploy a container image.
 
@@ -468,8 +469,6 @@ Delete a container image if not in use.
 - **Command**: `delete`
 - **Input**:
     - **grace\_period** : See [purge\_grace\_period](#point---purge_grace_period)
-- **Released In**: None
-
 #### Description
 Purge (collect garbage) container images.
 
@@ -496,8 +495,6 @@ Orphaned images will be purged according to the `grace_period`.
         - **image\_id**      : Image id.
         - **service\_id**    : Service id.
         - **service\_state** : Service state `run`|`stop`|`stop-app`.
-- **Released In**: None
-
 #### Description
 Container summary.
 
@@ -546,8 +543,6 @@ Container summary.
     - **service\_state** : Service state `run`|`stop`|`stop-app`.
     - **start\_time**    : Start time.
     - **stop\_time**     : Stop time.
-- **Released In**: None
-
 #### Description
 Container service details.
 
@@ -596,8 +591,6 @@ Container service details.
 - **Command**: `control`
 - **Input**:
     - **action** : `start`|`stop`
-- **Released In**: None
-
 #### Description
 (**default sync, optiontally async**) Control a container service.
 
@@ -617,8 +610,6 @@ Container service details.
 ### URI - /cntr/service/{service\_id}?cmd=delete
 - **Target Id**: cntr_service_delete
 - **Command**: `delete`
-- **Released In**: None
-
 #### Description
 (**default sync, optiontally async**) Delete a container service.
 
@@ -662,8 +653,6 @@ Running services will be stopped.
         - **command** : Start command
     - **service\_id**         : Image id
     - **service\_run\_state** : Service run state `run`|`stop`.
-- **Released In**: None
-
 #### Description
 Container service deploy.
 
@@ -721,8 +710,6 @@ Container service deploy.
 - **Command**: `delete`
 - **Input**:
     - **grace\_period** : See [purge\_grace\_period](#point---purge_grace_period)
-- **Released In**: None
-
 #### Description
 Purge (collect garbage) container services.
 
@@ -746,8 +733,6 @@ Container service resources that are no longer needed will be purged according t
 - **Command**: `control`
 - **Input**:
     - **action** : `clean`
-- **Released In**: None
-
 #### Description
 Global actions on cntr objects.
 
@@ -773,8 +758,6 @@ Performs an operation based on **action**:
 - **Command**: `delete`
 - **Input**:
     - **grace\_period** : See [purge\_grace\_period](#point---purge_grace_period)
-- **Released In**: None
-
 #### Description
 Purge (collect garbage) container services and images.
 
@@ -798,8 +781,6 @@ Services and images will be purged according to the `grace_period`.
 - **Command**: `set`
 - **Input**:
     - **level** : New logging level (`warning`|`notice`|`info`|`debug`).
-- **Released In**: None
-
 #### Description
 Set persistent journal logging level.
 
@@ -827,8 +808,6 @@ the logging level will change the verbosity of messages written to the journal.
     - **cursor** : Log cursor at end of provided lines
     - **lines**  : 
         - ***Array***: Log line
-- **Released In**: None
-
 #### Description
 Diagnostic log list.
 
@@ -893,8 +872,6 @@ Supported filter query paramters are:
     - **task\_status** : 
         - **code** : Final status code
         - **msgs** : Final message list
-- **Released In**: None
-
 #### Description
 (**async**) Perform network diagnostics.
 
@@ -969,8 +946,6 @@ a `task_details` document.
             - **member\_idx**          : See [member\_idx](#point---member_idx)
             - **pwr\_supply\_name**    : Name of power supply.
             - **pwr\_supply\_type**    : Type of power supply.
-- **Released In**: None
-
 #### Description
 Report power diagnostics.
 
@@ -1019,8 +994,6 @@ Report power diagnostics.
         - **measurement**    : Measurement info.
         - **resource\_id**   : Resource identifier.
         - **resource\_type** : Resource type.
-- **Released In**: None
-
 #### Description
 List of resources. For each resource type and ID, a measurement is provided.
 The list below shows the supported resource types, followed by a list of supported IDs.
@@ -1080,8 +1053,6 @@ for each resource type are as follows:
 - **Command**: `get`
 - **Output**:
     - **lines** : Lines from the snapshot log.
-- **Released In**: None
-
 #### Description
 Dynamically take a snapshot of diagnostics and metrics.
         
@@ -1160,8 +1131,6 @@ array.
         - **sensor\_number**             : Sensor number.
         - **upper\_threshold\_critical** : Upper limit (critical).
         - **upper\_threshold\_fatal**    : Upper limit (fatal).
-- **Released In**: None
-
 #### Description
 Report thermal diagnostics.
 
@@ -1200,8 +1169,6 @@ Report thermal diagnostics.
     - ***Array***:
         - **eth\_interface\_id**   : Ethernet interface id.
         - **eth\_interface\_name** : Ethernet interface name.
-- **Released In**: None
-
 #### Description
 Ethernet interface list.
 
@@ -1281,8 +1248,6 @@ Ethernet interface list.
     - **multicast\_enabled**   : Multicast is enabled (bool)
     - **oper\_state**          : Operational state (`up`|`down`|`unknown`...)
     - **speed\_mbps**          : Interface speed (Mbps)
-- **Released In**: None
-
 #### Description
 Ethernet interface details for `eth_interface_id`.
 
@@ -1393,8 +1358,6 @@ Ethernet interface details for `eth_interface_id`.
         - **mode**  : Address mode (`static`|`dhcp`)
     - **name\_servers**  : 
         - ***Array***: Name server address (IPv4 and/or IPv6)
-- **Released In**: None
-
 #### Description
 Ethernet interface update for `eth_interface_id`.
 
@@ -1444,8 +1407,6 @@ Ethernet interface update for `eth_interface_id`.
         - **net\_service\_intf** : Network service bind interface.
         - **port\_num**          : Network port number.
         - **port\_type**         : Network port type `tcp`|`udp`.
-- **Released In**: None
-
 #### Description
 Network service list.
 
@@ -1497,8 +1458,6 @@ The RDU301 currently supports the following network services:
     - **remote\_host**       : Redis remote host
     - **remote\_port**       : Redis remote port
     - **started**            : Network service is started.
-- **Released In**: None
-
 #### Description
 Redis secure tunnel service public details.
 
@@ -1539,8 +1498,6 @@ Redis secure tunnel service public details.
     - **remote\_host**       : Redis remote host
     - **remote\_port**       : Redis remote port
     - **started**            : Network service is started.
-- **Released In**: None
-
 #### Description
 Configure secure communications between RDU301 Redis and client.
 
@@ -1581,8 +1538,6 @@ and the client.
     - **notify\_ttl**               : SSDP notify time-to-live
     - **port\_num**                 : Network port number.
     - **port\_type**                : Network port type `tcp`|`udp`.
-- **Released In**: None
-
 #### Description
 SSDP service public details.
 
@@ -1627,8 +1582,6 @@ SSDP service public details.
     - **notify\_ttl**               : SSDP notify time-to-live
     - **port\_num**                 : Network port number.
     - **port\_type**                : Network port type `tcp`|`udp`.
-- **Released In**: None
-
 #### Description
 Update SSDP service configuration.
 
@@ -1663,8 +1616,6 @@ Update SSDP service configuration.
     - **net\_service\_intf** : Network service bind interface.
     - **port\_num**          : Network port number.
     - **port\_type**         : Network port type `tcp`|`udp`.
-- **Released In**: None
-
 #### Description
 Network service details.
 
@@ -1697,8 +1648,6 @@ Network service details.
     - **enabled**            : Network service is enabled.
     - **net\_service\_intf** : Network service bind interface.
     - **port\_num**          : Network port number.
-- **Released In**: None
-
 #### Description
 Network service details.
 
@@ -1717,43 +1666,241 @@ Network service details.
 
 ---
 
-### URI - /sec/cert
-- **Target Id**: sec_cert_list
+### URI - /sec/cert/srv
+- **Target Id**: sec_cert_srv_details
 - **Command**: `get`
-- **Released In**: None
+- **Output**:
+    - **cert\_pem**   : Server certificate content (PEM).
+    - **key\_sha256** : Server private key hash (SHA256).
+- **Released In**: 2.1.6
 
 #### Description
-TBD
+Return the content (PEM) of the web server TLS/SSL certificate.
+
+#### Example
+```
+# Output
+{
+    "data": {
+        "cert_pem": "-----BEGIN CERTIFICATE-----\nMIIGFDCCA/y...",
+        "key_sha256": "97a313566ee8206544aefa7e473dc9bd4c91cfcfa8c75f794ec8110fde2598ad"
+    },
+    "status": {
+        "code": 0,
+        "msgs": [
+            "OK"
+        ]
+    }
+}
+```
 
 ---
 
-### URI - /sec/cert/{cert\_id}
-- **Target Id**: sec_cert_details
-- **Command**: `get`
-- **Released In**: None
-
-#### Description
-TBD
-
----
-
-### URI - /sec/cert/{cert\_id}?cmd=delete
-- **Target Id**: sec_cert_delete
+### URI - /sec/cert/srv?cmd=delete
+- **Target Id**: sec_cert_srv_delete
 - **Command**: `delete`
-- **Released In**: None
+- **Released In**: 2.1.6
 
 #### Description
-TBD
+Delete server certificate, reset to factory default.
+**Restart required**.
 
 ---
 
-### URI - /sec/cert/{cert\_id}?cmd=set
-- **Target Id**: sec_cert_update
+### URI - /sec/cert/srv?cmd=set
+- **Target Id**: sec_cert_srv_update
 - **Command**: `set`
-- **Released In**: None
+- **Input**:
+    - **cert\_pem**      : Server certificate content (PEM).
+    - **priv\_key\_pem** : Server certificate private key (PEM).
+    - **priv\_key\_pw**  : Private key password (if encrypted)
+- **Released In**: 2.1.6
 
 #### Description
-TBD
+Update the web server TLS/SSL certificate.
+**Restart required**.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "set",
+    "data": {
+        "cert_pem": "-----BEGIN CERTIFICATE-----\nMIIGFDCCA/y...",
+        "priv_key_pem": "-----BEGIN RSA PRIVATE KEY-----\nMIIJKgIBAAK...",
+        "priv_key_pw": "s3o2v-*Tg"
+    }
+}
+```
+
+---
+
+### URI - /sec/jwt/cfg
+- **Target Id**: sec_jwt_cfg_details
+- **Command**: `get`
+- **Output**:
+    - **factory\_jwt\_enabled** : Enable/disable factory installed JWT key.
+    - **factory\_jwt\_public**  : Enable/disable factory installed JWT public key.
+    - **factory\_jwt\_salted**  : Enable/disable factory installed JWT key (salted).
+#### Description
+Return JWT subsystem configuration.
+
+#### Example
+```
+# Output
+{
+    "data": {
+        "factory_jwt_enabled": true,
+        "factory_jwt_public": true,
+        "factory_jwt_salted": true
+    },
+    "status": {
+        "code": 0,
+        "msgs": [
+            "OK"
+        ]
+    }
+}
+```
+
+---
+
+### URI - /sec/jwt/cfg?cmd=set
+- **Target Id**: sec_jwt_cfg_update
+- **Command**: `set`
+- **Input**:
+    - **factory\_jwt\_enabled** : Enable/disable factory installed JWT key.
+    - **factory\_jwt\_public**  : Enable/disable factory installed JWT public key.
+    - **factory\_jwt\_salted**  : Enable/disable factory installed JWT key (salted).
+- **Released In**: 2.1.6
+
+#### Description
+Update JWT subsystem configuration.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "set",
+    "data": {
+        "factory_jwt_enabled": true,
+        "factory_jwt_public": true,
+        "factory_jwt_salted": true
+    }
+}
+```
+
+---
+
+### URI - /sec/jwt/key
+- **Target Id**: sec_jwt_list
+- **Command**: `get`
+- **Output**:
+    - ***Array***:
+        - **is\_factory**   : JWT key is factory installed.
+        - **is\_persisted** : JWT key is persisted.
+        - **key\_id**       : JWT key ID.
+        - **key\_sha256**   : JWT key content hash (SHA256).
+        - **key\_type**     : JWT key type: `hmac`|`rsa`.
+- **Released In**: 2.1.6
+
+#### Description
+List installed JWT keys.
+
+#### Example
+```
+# Output
+{
+    "data": [
+        {
+            "is_factory": false,
+            "is_persisted": false,
+            "key_id": "rest-jwt-public-key-1",
+            "key_sha256": "97a313566ee8206544aefa7e473dc9bd4c91cfcfa8c75f794ec8110fde2598ad",
+            "key_type": "rsa"
+        }
+    ],
+    "status": {
+        "code": 0,
+        "msgs": [
+            "OK"
+        ]
+    }
+}
+```
+
+---
+
+### URI - /sec/jwt/key/{key\_id}
+- **Target Id**: sec_jwt_details
+- **Command**: `get`
+- **Output**:
+    - **is\_factory**   : JWT key is factory installed.
+    - **is\_persisted** : JWT key is persisted.
+    - **key\_id**       : JWT key ID.
+    - **key\_type**     : JWT key type: `hmac`|`rsa`.
+    - **sha256\_hash**  : JWT key content hash (SHA256).
+- **Released In**: 2.1.6
+
+#### Description
+Show JWT key details.
+
+#### Example
+```
+# Output
+{
+    "data": {
+        "is_factory": false,
+        "is_persisted": false,
+        "key_id": "rest-jwt-public-key-1",
+        "key_type": "rsa",
+        "sha256_hash": "97a313566ee8206544aefa7e473dc9bd4c91cfcfa8c75f794ec8110fde2598ad"
+    },
+    "status": {
+        "code": 0,
+        "msgs": [
+            "OK"
+        ]
+    }
+}
+```
+
+---
+
+### URI - /sec/jwt/key/{key\_id}?cmd=delete
+- **Target Id**: sec_jwt_delete
+- **Command**: `delete`
+- **Released In**: 2.1.6
+
+#### Description
+Delete JWT key. Factory keys cannot be deleted.
+
+---
+
+### URI - /sec/jwt/key/{key\_id}?cmd=set
+- **Target Id**: sec_jwt_update
+- **Command**: `set`
+- **Input**:
+    - **is\_persisted** : JWT key is persisted.
+    - **key\_content**  : JWT key content, `hmac`: shared secret, `rsa`: public key (PEM).
+    - **key\_type**     : JWT key type: `hmac`|`rsa`.
+- **Released In**: 2.1.6
+
+#### Description
+Add/update JWT key.  Note that factory keys cannot be added/updated.
+
+#### Example
+```
+# Data Input
+{
+    "cmd": "set",
+    "data": {
+        "is_persisted": false,
+        "key_content": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqh...",
+        "key_type": "rsa"
+    }
+}
+```
 
 ---
 
@@ -1764,8 +1911,6 @@ TBD
     - ***Array***:
         - **sw\_component\_id** : Software component id.
         - **version**           : Software version.
-- **Released In**: None
-
 #### Description
 List software components.
 
@@ -1798,8 +1943,6 @@ List software components.
     - **build\_time**       : Software build timestamp.
     - **sw\_component\_id** : Software component id.
     - **version**           : Software version.
-- **Released In**: None
-
 #### Description
 Root file system software details.
 
@@ -1833,8 +1976,6 @@ Root file system software details.
     - **update\_reboot** : Reboot on success: `reboot`|`no-reboot`
 - **Output**:
     - **log\_id** : Log id for any update log output and messages.
-- **Released In**: None
-
 #### Description
 (**async**) Root file system software update.
 
@@ -1888,8 +2029,6 @@ Root file system software details.
     - **system\_processor\_count**   : Total number of processors/cores for the system
     - **system\_processor\_summary** : Processor description
     - **uuid**                       : Unit UUID
-- **Released In**: None
-
 #### Description
 System details.
 
@@ -1935,8 +2074,6 @@ System details.
 - **Input**:
     - **action** : `reboot`|`halt`|`to-dormant`|`factory-reset`
 - **Output**:
-- **Released In**: None
-
 #### Description
 (**async**) Shut the system down.
 
@@ -1980,8 +2117,6 @@ Default is `reboot`.
         - **task\_id**    : Unique task identifier
         - **task\_state** : Task execution state `run`|`exit`
         - **time\_start** : Task start time
-- **Released In**: None
-
 #### Description
 Task list.
 
@@ -2018,8 +2153,6 @@ Task list.
         - **msgs** : Task final message list
     - **time\_start**  : Task start time
     - **time\_stop**   : Task stop time
-- **Released In**: None
-
 #### Example
 ```
 # Output
@@ -2052,8 +2185,6 @@ Task list.
 - **Command**: `control`
 - **Output**:
     - **action** : Task action to perform `cancel`|`kill`
-- **Released In**: None
-
 #### Description
 Task cancel/kill.
 
@@ -2078,8 +2209,6 @@ Task cancel/kill.
 ### URI - /task/{task\_id}?cmd=delete
 - **Target Id**: task_delete
 - **Command**: `delete`
-- **Released In**: None
-
 #### Description
 Mark a task for delete.
 
@@ -2090,8 +2219,6 @@ Mark a task for delete.
 - **Command**: `delete`
 - **Input**:
     - **grace\_period** : See [purge\_grace\_period](#point---purge_grace_period)
-- **Released In**: None
-
 #### Description
 Purge (collect garbage) tasks.
 
@@ -2116,8 +2243,6 @@ Completed tasks will be purged according to the `grace_period`.
 - **Output**:
     - **uptime** : Uptime in seconds.
     - **utc**    : System UTC time.
-- **Released In**: None
-
 #### Description
 System time information.
 
@@ -2145,8 +2270,6 @@ System time information.
 - **Command**: `set`
 - **Input**:
     - **utc** : System UTC time.
-- **Released In**: None
-
 #### Description
 Set UTC time.
 
@@ -2169,8 +2292,6 @@ Set UTC time.
 - **Input**:
     - **action**   : Action (authenticate)
     - **password** : Password value to confirm
-- **Released In**: None
-
 #### Description
 Authenticate `user_id`.  Verify password for user.  Failure will return `401 Unathorized`.
 
@@ -2194,8 +2315,6 @@ Authenticate `user_id`.  Verify password for user.  Failure will return `401 Una
 - **Input**:
     - **new\_password** : New password
     - **old\_password** : Optional old password value to confirm
-- **Released In**: None
-
 #### Description
 Changes the password for `user_id`.  If the **old\_password** field is present, then confirm it prior to
 changing to the new password.  Failure to confirm will return `401 Unauthorized`.
@@ -2217,8 +2336,6 @@ changing to the new password.  Failure to confirm will return `401 Unauthorized`
 ### URI - /vcloud
 - **Target Id**: vcloud_summary
 - **Command**: `get`
-- **Released In**: None
-
 #### Description
 This target is TBD.
 
